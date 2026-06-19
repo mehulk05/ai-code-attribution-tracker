@@ -19,8 +19,8 @@
     --line: rgba(255, 255, 255, 0.06);
     --line-focus: rgba(0, 242, 254, 0.4);
     --ink: #f8fafc;
-    --muted: #94a3b8;
-    --faint: #475569;
+    --muted: #cbd5e1; /* brighter, high-contrast text color */
+    --faint: #94a3b8; /* readable muted text color */
     
     --neon-cyan: #00f2fe;
     --neon-violet: #7f00ff;
@@ -517,11 +517,18 @@
         
         <label>Auth Credentials</label>
         <select id="authMethod">
+          <option value="public" selected>Public Repository (No credentials needed)</option>
           <option value="server">Use server default (.env Token)</option>
-          <option value="token">Repository Access Token</option>
+          <option value="token">Private Repository Access Token</option>
           <option value="app">App Password (Username + Pass)</option>
           <option value="api">Atlassian account API Token</option>
         </select>
+
+        <div class="auth-fields" data-for="public">
+          <div class="hint" style="color: var(--neon-cyan); margin-top: 10px; font-weight: 600;">
+            ℹ️ No credentials needed. Public repositories (like GitHub/Bitbucket) will be cloned directly.
+          </div>
+        </div>
 
         <div class="auth-fields" data-for="token">
           <label>Access Token</label>
