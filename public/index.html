@@ -461,6 +461,62 @@
     display: flex;
     gap: 12px;
   }
+
+  /* Setup guide styles in placeholder */
+  .setup-guide {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-top: 35px;
+    max-width: 900px;
+    width: 100%;
+    text-align: left;
+  }
+  @media(max-width: 768px) {
+    .setup-guide { grid-template-columns: 1fr; }
+  }
+  .guide-card {
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .guide-card:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(0, 242, 254, 0.25);
+    transform: translateY(-2px);
+  }
+  .guide-num {
+    display: inline-flex;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(0, 242, 254, 0.1);
+    border: 1px solid rgba(0, 242, 254, 0.25);
+    color: var(--neon-cyan);
+    font-size: 11px;
+    font-weight: 700;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    font-family: 'Outfit', sans-serif;
+  }
+  .guide-card h4 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    color: #fff;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  .guide-card p {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
 </style>
 </head>
 <body>
@@ -570,10 +626,49 @@
     <!-- REPORT PREVIEW SCREEN -->
     <div class="results">
       <div id="placeholder" class="placeholder">
-        <div>
-          <div style="font-size: 32px; margin-bottom: 12px;">📊</div>
-          <div style="font-weight: 600; color: #fff; margin-bottom: 6px;">Ready to Scan</div>
-          <div style="max-width: 320px; font-size: 13px; color: var(--muted);">Specify a Bitbucket repository or local folder path above to compile the developer stats.</div>
+        <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+          
+          <!-- Premium Scanner SVG Icon -->
+          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="color: var(--neon-cyan); filter: drop-shadow(0 0 12px rgba(0, 242, 254, 0.45)); margin-bottom: 12px; animation: pulseGlow 3s ease-in-out infinite;">
+            <path d="M6 18h8" />
+            <path d="M3 22h18" />
+            <path d="M14 18a4 4 0 0 0-4-4H9" />
+            <path d="M9 14V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v10" />
+            <path d="M12 3v3" />
+            <circle cx="17" cy="15" r="3" stroke="var(--neon-violet)" stroke-width="1.5" style="filter: drop-shadow(0 0 6px rgba(127, 0, 255, 0.6));" />
+            <path d="M19 17l2.5 2.5" stroke="var(--neon-violet)" stroke-width="1.5" />
+            <line x1="14" y1="6" x2="17" y2="6" stroke="var(--ink)" opacity="0.3" />
+            <line x1="14" y1="9" x2="16" y2="9" stroke="var(--ink)" opacity="0.3" />
+          </svg>
+          <style>
+            @keyframes pulseGlow {
+              0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(0, 242, 254, 0.4)); }
+              50% { transform: scale(1.03); filter: drop-shadow(0 0 20px rgba(0, 242, 254, 0.6)); }
+            }
+          </style>
+
+          <h2 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 8px; letter-spacing: 0.5px;">Ready to Scan</h2>
+          <p style="max-width: 460px; font-size: 13.5px; color: var(--muted); margin-bottom: 10px;">Configure your local repository directory path or remote Git server URL in the sidebar settings panel to launch the forensic blame scanner.</p>
+
+          <!-- Step by Step Setup Guide -->
+          <div class="setup-guide">
+            <div class="guide-card">
+              <span class="guide-num">1</span>
+              <h4>Define Target</h4>
+              <p>Toggle between <strong>Git Remote URL</strong> (for cloning GitHub/Bitbucket) or <strong>Local Folder Scan</strong> for instant clones on disk.</p>
+            </div>
+            <div class="guide-card">
+              <span class="guide-num">2</span>
+              <h4>Select Auth</h4>
+              <p>Choose <strong>Public Repository</strong> for unauthenticated checkouts, or paste credentials (tokens/passwords) for private projects.</p>
+            </div>
+            <div class="guide-card">
+              <span class="guide-num">3</span>
+              <h4>Analyze Forensics</h4>
+              <p>Launch the scan to estimate total AI code percentage, check Claude vs. Gemini signatures, and view developer ownership tables.</p>
+            </div>
+          </div>
+
         </div>
       </div>
       
