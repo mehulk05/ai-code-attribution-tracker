@@ -437,17 +437,206 @@
     box-shadow: var(--shadow);
   }
   
+  /* Advanced Spinner & Continuous Hologram Radar System */
   .spinner-box { text-align: center; }
-  .spinner {
-    width: 44px;
-    height: 44px;
-    border: 3px solid rgba(255, 255, 255, 0.05);
-    border-top-color: var(--neon-cyan);
-    border-radius: 50%;
-    animation: spin .8s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
-    margin: 0 auto 18px;
+  
+  .spinner-portal {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  .spinner-ring-1 {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top: 4px solid var(--neon-cyan);
+    border-bottom: 4px solid var(--neon-cyan);
+    border-radius: 50%;
+    animation: spinCW 1.5s cubic-bezier(0.53, 0.21, 0.29, 0.67) infinite;
+    filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.6));
+  }
+  
+  .spinner-ring-2 {
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    border: 3px solid transparent;
+    border-left: 3px solid var(--neon-violet);
+    border-right: 3px solid var(--neon-violet);
+    border-radius: 50%;
+    animation: spinCCW 1.2s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+    filter: drop-shadow(0 0 8px rgba(127, 0, 255, 0.6));
+  }
+  
+  .spinner-ring-3 {
+    position: absolute;
+    width: 60%;
+    height: 60%;
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    animation: spinCW 8s linear infinite;
+  }
+  
+  .spinner-core {
+    width: 24px;
+    height: 24px;
+    background: var(--primary-gradient);
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.8), 0 0 35px rgba(127, 0, 255, 0.8);
+    animation: pulseScale 1s ease-in-out infinite;
+  }
+
+  /* Animated Holographic Radar Scanner */
+  .scanner-hologram {
+    position: relative;
+    width: 240px;
+    height: 240px;
+    margin: 0 auto 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hologram-circle {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 242, 254, 0.1);
+    transition: var(--transition);
+  }
+
+  .hologram-circle-1 {
+    width: 240px;
+    height: 240px;
+    border-style: dashed;
+    animation: spinCW 25s linear infinite;
+  }
+
+  .hologram-circle-2 {
+    width: 190px;
+    height: 190px;
+    border-color: rgba(127, 0, 255, 0.2);
+    border-width: 2px;
+    border-style: double;
+    animation: spinCCW 18s linear infinite;
+  }
+
+  .hologram-circle-3 {
+    width: 130px;
+    height: 130px;
+    background: radial-gradient(circle, rgba(0, 242, 254, 0.04) 0%, transparent 75%);
+    animation: pulseScale 3.5s ease-in-out infinite;
+  }
+
+  /* Laser sweep effect */
+  .laser-sweep {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, rgba(0, 242, 254, 0.2) 0deg, rgba(0, 242, 254, 0) 120deg);
+    animation: spinCW 4.5s linear infinite;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+
+  /* Floating micro-particles */
+  .holo-node {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    opacity: 0.8;
+  }
+  .holo-node-1 {
+    top: 25px;
+    left: 45%;
+    background: var(--neon-cyan);
+    box-shadow: 0 0 12px var(--neon-cyan);
+    animation: floatNode1 8s ease-in-out infinite;
+  }
+  .holo-node-2 {
+    bottom: 45px;
+    left: 40px;
+    background: var(--neon-violet);
+    box-shadow: 0 0 12px var(--neon-violet);
+    animation: floatNode2 10s ease-in-out infinite alternate;
+  }
+  .holo-node-3 {
+    top: 75px;
+    right: 35px;
+    background: var(--neon-green);
+    box-shadow: 0 0 12px var(--neon-green);
+    animation: floatNode3 9s ease-in-out infinite;
+  }
+
+  /* Floating container for main microscope */
+  .microscope-wrap {
+    position: relative;
+    z-index: 2;
+    animation: floatMicroscope 4s ease-in-out infinite;
+  }
+
+  /* Guide Cards Continuous Float */
+  .guide-float-inner {
+    animation: floatGuide 6s ease-in-out infinite;
+  }
+  .guide-card:nth-child(2) .guide-float-inner {
+    animation-delay: 1.5s;
+    animation-duration: 6.5s;
+  }
+  .guide-card:nth-child(3) .guide-float-inner {
+    animation-delay: 3s;
+    animation-duration: 7s;
+  }
+
+  @keyframes spinCW {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes spinCCW {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+  }
+
+  @keyframes pulseScale {
+    0%, 100% { transform: scale(0.95); opacity: 0.6; }
+    50% { transform: scale(1.05); opacity: 0.95; }
+  }
+
+  @keyframes floatMicroscope {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(1.5deg); }
+  }
+
+  @keyframes floatGuide {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  @keyframes floatNode1 {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(15px, -10px); }
+    66% { transform: translate(-10px, 20px); }
+  }
+
+  @keyframes floatNode2 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-20px, -20px); }
+  }
+
+  @keyframes floatNode3 {
+    0%, 100% { transform: translate(0, 0); }
+    40% { transform: translate(15px, 25px); }
+    80% { transform: translate(-15px, -15px); }
+  }
+
   
   .err {
     background: rgba(239, 68, 68, 0.07);
@@ -690,24 +879,31 @@
       <div id="placeholder" class="placeholder">
         <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
           
-          <!-- Premium Scanner SVG Icon -->
-          <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="color: var(--neon-cyan); filter: drop-shadow(0 0 12px rgba(0, 242, 254, 0.45)); margin-bottom: 12px; animation: pulseGlow 3s ease-in-out infinite;">
-            <path d="M6 18h8" />
-            <path d="M3 22h18" />
-            <path d="M14 18a4 4 0 0 0-4-4H9" />
-            <path d="M9 14V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v10" />
-            <path d="M12 3v3" />
-            <circle cx="17" cy="15" r="3" stroke="var(--neon-violet)" stroke-width="1.5" style="filter: drop-shadow(0 0 6px rgba(127, 0, 255, 0.6));" />
-            <path d="M19 17l2.5 2.5" stroke="var(--neon-violet)" stroke-width="1.5" />
-            <line x1="14" y1="6" x2="17" y2="6" stroke="var(--ink)" opacity="0.3" />
-            <line x1="14" y1="9" x2="16" y2="9" stroke="var(--ink)" opacity="0.3" />
-          </svg>
-          <style>
-            @keyframes pulseGlow {
-              0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(0, 242, 254, 0.4)); }
-              50% { transform: scale(1.03); filter: drop-shadow(0 0 20px rgba(0, 242, 254, 0.6)); }
-            }
-          </style>
+          <!-- Holographic Radar/Scanner Component -->
+          <div class="scanner-hologram">
+            <div class="hologram-circle hologram-circle-1"></div>
+            <div class="hologram-circle hologram-circle-2"></div>
+            <div class="hologram-circle hologram-circle-3"></div>
+            <div class="laser-sweep"></div>
+            
+            <div class="holo-node holo-node-1"></div>
+            <div class="holo-node holo-node-2"></div>
+            <div class="holo-node holo-node-3"></div>
+            
+            <div class="microscope-wrap">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="color: var(--neon-cyan); filter: drop-shadow(0 0 12px rgba(0, 242, 254, 0.45));">
+                <path d="M6 18h8" />
+                <path d="M3 22h18" />
+                <path d="M14 18a4 4 0 0 0-4-4H9" />
+                <path d="M9 14V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v10" />
+                <path d="M12 3v3" />
+                <circle cx="17" cy="15" r="3" stroke="var(--neon-violet)" stroke-width="1.5" style="filter: drop-shadow(0 0 6px rgba(127, 0, 255, 0.6));" />
+                <path d="M19 17l2.5 2.5" stroke="var(--neon-violet)" stroke-width="1.5" />
+                <line x1="14" y1="6" x2="17" y2="6" stroke="var(--ink)" opacity="0.3" />
+                <line x1="14" y1="9" x2="16" y2="9" stroke="var(--ink)" opacity="0.3" />
+              </svg>
+            </div>
+          </div>
 
           <h2 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 8px; letter-spacing: 0.5px;">Ready to Scan</h2>
           <p style="max-width: 460px; font-size: 13.5px; color: var(--muted); margin-bottom: 10px;">Configure your local repository directory path or remote Git server URL in the sidebar settings panel to launch the forensic blame scanner.</p>
@@ -715,19 +911,25 @@
           <!-- Step by Step Setup Guide -->
           <div class="setup-guide">
             <div class="guide-card">
-              <span class="guide-num">1</span>
-              <h4>Define Target</h4>
-              <p>Toggle between <strong>Git Remote URL</strong> (for cloning GitHub/Bitbucket) or <strong>Local Folder Scan</strong> for instant clones on disk.</p>
+              <div class="guide-float-inner">
+                <span class="guide-num">1</span>
+                <h4>Define Target</h4>
+                <p>Toggle between <strong>Git Remote URL</strong> (for cloning GitHub/Bitbucket) or <strong>Local Folder Scan</strong> for instant clones on disk.</p>
+              </div>
             </div>
             <div class="guide-card">
-              <span class="guide-num">2</span>
-              <h4>Select Auth</h4>
-              <p>Choose <strong>Public Repository</strong> for unauthenticated checkouts, or paste credentials (tokens/passwords) for private projects.</p>
+              <div class="guide-float-inner">
+                <span class="guide-num">2</span>
+                <h4>Select Auth</h4>
+                <p>Choose <strong>Public Repository</strong> for unauthenticated checkouts, or paste credentials (tokens/passwords) for private projects.</p>
+              </div>
             </div>
             <div class="guide-card">
-              <span class="guide-num">3</span>
-              <h4>Analyze Forensics</h4>
-              <p>Launch the scan to estimate total AI code percentage, check Claude vs. Gemini signatures, and view developer ownership tables.</p>
+              <div class="guide-float-inner">
+                <span class="guide-num">3</span>
+                <h4>Analyze Forensics</h4>
+                <p>Launch the scan to estimate total AI code percentage, check Claude vs. Gemini signatures, and view developer ownership tables.</p>
+              </div>
             </div>
           </div>
 
@@ -824,7 +1026,12 @@
     $('placeholder').style.display = 'flex';
     $('placeholder').innerHTML = `
       <div class="progress-box">
-        <div class="spinner"></div>
+        <div class="spinner-portal">
+          <div class="spinner-ring-1"></div>
+          <div class="spinner-ring-2"></div>
+          <div class="spinner-ring-3"></div>
+          <div class="spinner-core"></div>
+        </div>
         <div style="font-weight: 600; color: #fff; font-size: 15px;" id="p-status">Contacting scan server...</div>
         <div class="progress-bar-outer">
           <div class="progress-bar-inner" id="p-bar" style="width: 0%;"></div>
