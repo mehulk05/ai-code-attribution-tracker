@@ -637,7 +637,7 @@
 
   /* Real-time terminal streaming scan console */
   .terminal-stream {
-    background: rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.55);
     border: 1px solid var(--line);
     border-radius: 12px;
     padding: 16px;
@@ -646,31 +646,37 @@
     color: var(--neon-cyan);
     text-align: left;
     height: 140px;
-    overflow-y: hidden;
+    overflow-y: scroll;
+    scrollbar-width: none; /* Firefox */
     margin-top: 24px;
     position: relative;
     box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+    display: block;
   }
   
+  .terminal-stream::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  
+  /* Fade out old text at the TOP, keep bottom fully visible */
   .terminal-stream::after {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(to bottom, transparent 60%, rgba(6, 7, 13, 0.9) 100%);
+    top: 0; left: 0; right: 0; height: 35px;
+    background: linear-gradient(to top, transparent, rgba(6, 7, 13, 0.95));
     pointer-events: none;
-    border-radius: 12px;
+    border-radius: 12px 12px 0 0;
   }
   
   .terminal-line {
+    display: block;
     white-space: nowrap;
-    opacity: 0.9;
-    line-height: 1.5;
+    opacity: 0.95;
+    line-height: 1.6;
     font-family: 'Courier New', Courier, monospace;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-bottom: 4px;
   }
   
   .terminal-line.success { color: var(--neon-green); text-shadow: 0 0 6px rgba(16, 185, 129, 0.4); }
