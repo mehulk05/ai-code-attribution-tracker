@@ -493,6 +493,65 @@
     animation: pulseScale 1s ease-in-out infinite;
   }
 
+  /* Detective Bot Animation rules */
+  .detective-bot {
+    margin: 0 auto 20px;
+    display: block;
+    overflow: visible;
+  }
+  
+  .bot-body {
+    animation: botFloat 3.5s ease-in-out infinite;
+  }
+  
+  .booster-flame {
+    animation: flamePulse 0.15s ease-in-out infinite alternate;
+    transform-origin: 80px 110px;
+  }
+  
+  .scan-beam {
+    animation: beamSweep 2.5s ease-in-out infinite alternate;
+    transform-origin: 80px 70px;
+    mix-blend-mode: screen;
+  }
+  
+  .code-char {
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: bold;
+    fill: var(--neon-cyan);
+    opacity: 0;
+    transform-origin: center;
+  }
+  
+  .char-1 { animation: floatCharUp 2.5s infinite 0.2s; }
+  .char-2 { animation: floatCharUp 3s infinite 0.8s; fill: var(--neon-violet); }
+  .char-3 { animation: floatCharUp 2.8s infinite 1.4s; }
+  .char-4 { animation: floatCharUp 3.2s infinite 0.4s; fill: var(--neon-yellow); }
+  .char-5 { animation: floatCharUp 2.6s infinite 1.9s; }
+
+  @keyframes botFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  @keyframes flamePulse {
+    0% { transform: scaleY(0.9) scaleX(0.95); opacity: 0.7; }
+    100% { transform: scaleY(1.15) scaleX(1.05); opacity: 1; }
+  }
+
+  @keyframes beamSweep {
+    0% { transform: rotate(-15deg); opacity: 0.5; }
+    100% { transform: rotate(15deg); opacity: 0.85; }
+  }
+
+  @keyframes floatCharUp {
+    0% { transform: translateY(40px) scale(0.6); opacity: 0; }
+    30% { opacity: 0.9; }
+    80% { opacity: 0.9; }
+    100% { transform: translateY(-70px) scale(1.15); opacity: 0; }
+  }
+
   /* Animated Holographic Radar Scanner */
   .scanner-hologram {
     position: relative;
@@ -1082,12 +1141,55 @@
     $('placeholder').style.display = 'flex';
     $('placeholder').innerHTML = `
       <div class="progress-box">
-        <div class="spinner-portal">
-          <div class="spinner-ring-1"></div>
-          <div class="spinner-ring-2"></div>
-          <div class="spinner-ring-3"></div>
-          <div class="spinner-core"></div>
-        </div>
+        <!-- SVG Detective Bot Character Searching AI Code -->
+        <svg class="detective-bot" viewBox="0 0 160 160" width="120" height="120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="booster-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--neon-violet)" stop-opacity="0.8"/>
+              <stop offset="100%" stop-color="transparent"/>
+            </linearGradient>
+            <linearGradient id="laser-beam" x1="0.5" y1="0" x2="0.5" y2="1">
+              <stop offset="0%" stop-color="rgba(0, 242, 254, 0.4)"/>
+              <stop offset="100%" stop-color="rgba(127, 0, 255, 0.0)"/>
+            </linearGradient>
+          </defs>
+          
+          <!-- floating background code particles -->
+          <g class="float-code">
+            <text x="20" y="40" class="code-char char-1">{</text>
+            <text x="130" y="55" class="code-char char-2">AI</text>
+            <text x="10" y="110" class="code-char char-3">1</text>
+            <text x="140" y="120" class="code-char char-4">0</text>
+            <text x="35" y="140" class="code-char char-5">}</text>
+          </g>
+
+          <g class="bot-body">
+            <!-- Rocket Booster Fire -->
+            <path d="M 70 100 L 80 130 L 90 100 Z" fill="url(#booster-grad)" class="booster-flame"/>
+            <!-- Chassis / Torso -->
+            <rect x="62" y="85" width="36" height="20" rx="6" fill="#1e293b" stroke="var(--neon-cyan)" stroke-width="1.5"/>
+            <circle cx="80" cy="95" r="4" fill="var(--neon-violet)"/>
+            
+            <!-- Head / Helmet -->
+            <rect x="50" y="35" width="60" height="50" rx="18" fill="#161a2b" stroke="var(--neon-cyan)" stroke-width="2.5"/>
+            <!-- Searching Eye Visor -->
+            <rect x="58" y="47" width="44" height="18" rx="9" fill="#040814" stroke="rgba(255,255,255,0.1)"/>
+            
+            <!-- Visor scanning light -->
+            <ellipse cx="80" cy="56" rx="8" ry="4" fill="var(--neon-cyan)">
+              <animate attributeName="cx" values="68;92;68" dur="2s" repeatCount="indefinite"/>
+            </ellipse>
+            
+            <!-- Scanning light beam cone -->
+            <polygon points="80,62 30,150 130,150" fill="url(#laser-beam)" class="scan-beam"/>
+            
+            <!-- Antenna -->
+            <line x1="80" y1="35" x2="80" y2="20" stroke="var(--neon-cyan)" stroke-width="2"/>
+            <circle cx="80" cy="18" r="3.5" fill="var(--neon-violet)" style="filter: drop-shadow(0 0 4px var(--neon-violet));">
+              <animate attributeName="opacity" values="1;0.3;1" dur="1s" repeatCount="indefinite"/>
+            </circle>
+          </g>
+        </svg>
         <div style="font-weight: 600; color: #fff; font-size: 15px;" id="p-status">Contacting scan server...</div>
         <div class="progress-bar-outer">
           <div class="progress-bar-inner" id="p-bar" style="width: 0%;"></div>
