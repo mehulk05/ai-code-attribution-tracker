@@ -2,7 +2,7 @@
 
 Estimates **what share of a repository's code is AI-generated**, split by **AI Agent tool** (Antigravity/Gemini vs. Claude) and by **individual developer** — using forensic `git blame` line-ownership and **code-style fingerprinting**.
 
-![Dashboard Preview](./public/dashboard_preview.png)
+![Initial Ready Screen](./public/initial_preview.png)
 
 ---
 
@@ -17,14 +17,17 @@ Estimates **what share of a repository's code is AI-generated**, split by **AI A
 
 ## 📸 Screenshots & Workflow
 
-### 1. Developer Contributions & AI Agent Usage Table
+### 1. Ready to Scan (Initial State)
+Clear and separate configuration paths for local repositories and Bitbucket remote servers.
+![Initial Setup Interface](./public/initial_preview.png)
+
+### 2. Active Blaming & Loader State
+Track active filenames, remaining times, and blaming percentages in real-time as Git compiled metrics.
+![Loader State](./public/loader_preview.png)
+
+### 3. Developer Contributions & AI Agent Usage Table
 Our forensic scanning dashboard shows exactly who owns the code, their contribution share, total commits, lines added, and preferred AI coding assistant.
 ![Developer Analysis View](./public/report_preview.png)
-
-### 2. Executive Agent Preferences
-A detailed summary block aggregates style fingerprint ratios (divider comments, docstring leaks, JSDoc patterns, and numbered steps):
-- **Claude (Anthropic)**
-- **Antigravity / Gemini (Google)**
 
 ---
 
