@@ -96,7 +96,6 @@ export function buildHtml(repoName, a) {
             </div>
           </div>
         </td>
-        <td class="n" style="font-weight:600; color:#fff;">${f1(d.activeSharePct)}%</td>
         <td class="n" style="color:var(--muted);">${d.commits}</td>
         <td class="n" style="color:var(--muted);">${d.linesAdded.toLocaleString()}</td>
         <td class="n" style="color:var(--neon-cyan); font-weight:600;">${d.aiLinesAdded.toLocaleString()}</td>
@@ -458,6 +457,7 @@ export function buildHtml(repoName, a) {
       display: flex;
       align-items: center;
       gap: 12px;
+      min-width: 170px;
     }
     .dev-cell .idx {
       font-size: 12px;
@@ -477,6 +477,7 @@ export function buildHtml(repoName, a) {
     .dev-cell .name {
       font-weight: 600;
       color: #fff;
+      white-space: nowrap;
     }
     .dev-cell .name-info {
       display: flex;
@@ -724,7 +725,6 @@ export function buildHtml(repoName, a) {
           <tr>
             <th>Developer</th>
             <th>Active Lines Owned</th>
-            <th style="text-align:right;">Active Share</th>
             <th style="text-align:right;">Commits</th>
             <th style="text-align:right;">Total Lines Added</th>
             <th style="text-align:right;">AI Lines Added</th>
