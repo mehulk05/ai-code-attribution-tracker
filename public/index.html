@@ -104,33 +104,7 @@
   .layout { display: grid; grid-template-columns: 380px 1fr; gap: 28px; align-items: start; }
   @media(max-width: 1024px) { .layout { grid-template-columns: 1fr; } }
 
-  .layout.results-active {
-    grid-template-columns: 1fr;
-  }
-  .layout.results-active #form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-    align-items: end;
-  }
-  .layout.results-active #form .mode-selector {
-    grid-column: 1 / -1;
-    margin-bottom: 0;
-  }
-  .layout.results-active #form .form-section-title {
-    grid-column: 1 / -1;
-    margin: 10px 0 0;
-  }
-  .layout.results-active #form button[type="submit"] {
-    margin-top: 0;
-  }
-  .layout.results-active #form .security-badge {
-    grid-column: 1 / -1;
-    margin-top: 10px;
-  }
-  .layout.results-active #form .auth-fields {
-    grid-column: 1 / -1;
-  }
+
   
   /* Console Form Panel */
   .panel {
@@ -689,7 +663,6 @@
     };
 
     // Setup visual progress box
-    $('layout-container').classList.add('results-active');
     $('placeholder').style.display = 'flex';
     $('placeholder').innerHTML = `
       <div class="progress-box">
