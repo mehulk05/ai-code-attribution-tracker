@@ -103,6 +103,34 @@
   
   .layout { display: grid; grid-template-columns: 380px 1fr; gap: 28px; align-items: start; }
   @media(max-width: 1024px) { .layout { grid-template-columns: 1fr; } }
+
+  .layout.results-active {
+    grid-template-columns: 1fr;
+  }
+  .layout.results-active #form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    align-items: end;
+  }
+  .layout.results-active #form .mode-selector {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+  .layout.results-active #form .form-section-title {
+    grid-column: 1 / -1;
+    margin: 10px 0 0;
+  }
+  .layout.results-active #form button[type="submit"] {
+    margin-top: 0;
+  }
+  .layout.results-active #form .security-badge {
+    grid-column: 1 / -1;
+    margin-top: 10px;
+  }
+  .layout.results-active #form .auth-fields {
+    grid-column: 1 / -1;
+  }
   
   /* Console Form Panel */
   .panel {
@@ -477,7 +505,7 @@
     </div>
   </header>
 
-  <div class="layout">
+  <div class="layout" id="layout-container">
     <!-- SCAN CONTROL CENTER FORM -->
     <form class="panel" id="form">
       
@@ -505,24 +533,30 @@
         <div class="hint">Check standard files without remote network latency.</div>
       </div>
 
-      <label>Branch Name</label>
-      <input id="branch" placeholder="master (defaults if omitted)" autocomplete="off">
+      <div class="form-group">
+        <label>Branch Name</label>
+        <input id="branch" placeholder="master (defaults if omitted)" autocomplete="off">
+      </div>
 
-      <label>Report Display Name</label>
-      <input id="name" placeholder="Auto-generated from path/URL" autocomplete="off">
+      <div class="form-group">
+        <label>Report Display Name</label>
+        <input id="name" placeholder="Auto-generated from path/URL" autocomplete="off">
+      </div>
 
       <!-- Section 2: Authentication (Remote Only) -->
       <div class="remote-only">
         <div class="form-section-title"><span>2</span> Authentication</div>
         
-        <label>Auth Credentials</label>
-        <select id="authMethod">
-          <option value="public" selected>Public Repository (No credentials needed)</option>
-          <option value="server">Use server default (.env Token)</option>
-          <option value="token">Private Repository Access Token</option>
-          <option value="app">App Password (Username + Pass)</option>
-          <option value="api">Atlassian account API Token</option>
-        </select>
+        <div class="form-group">
+          <label>Auth Credentials</label>
+          <select id="authMethod">
+            <option value="public" selected>Public Repository (No credentials needed)</option>
+            <option value="server">Use server default (.env Token)</option>
+            <option value="token">Private Repository Access Token</option>
+            <option value="app">App Password (Username + Pass)</option>
+            <option value="api">Atlassian account API Token</option>
+          </select>
+        </div>
 
         <div class="auth-fields" data-for="public">
           <div class="hint" style="color: var(--neon-cyan); margin-top: 10px; font-weight: 600;">
@@ -655,6 +689,7 @@
     };
 
     // Setup visual progress box
+    $('layout-container').classList.add('results-active');
     $('placeholder').style.display = 'flex';
     $('placeholder').innerHTML = `
       <div class="progress-box">
