@@ -483,7 +483,7 @@
       
       <!-- SCAN MODE SWITCHER -->
       <div class="mode-selector">
-        <button type="button" class="mode-btn active" id="btn-remote" onclick="setMode('remote')">Bitbucket Remote</button>
+        <button type="button" class="mode-btn active" id="btn-remote" onclick="setMode('remote')">Git Remote</button>
         <button type="button" class="mode-btn" id="btn-local" onclick="setMode('local')">Local Folder Scan</button>
       </div>
       
@@ -492,9 +492,9 @@
       
       <!-- Remote Only Field -->
       <div class="remote-only">
-        <label>Bitbucket Repo URL</label>
+        <label>Git Remote URL (GitHub/Bitbucket)</label>
         <div class="input-wrapper">
-          <input id="repo" placeholder="https://bitbucket.org/workspace/repo.git" autocomplete="off">
+          <input id="repo" placeholder="https://github.com/user/repo.git" autocomplete="off">
         </div>
       </div>
 
@@ -628,7 +628,7 @@
     const repo = $('repo').value.trim();
     const localPath = $('localPath').value.trim();
     
-    if (scanMode === 'remote' && !repo) { alert('Specify a Bitbucket repository URL to proceed.'); return; }
+    if (scanMode === 'remote' && !repo) { alert('Specify a Git repository URL to proceed.'); return; }
     if (scanMode === 'local' && !localPath) { alert('Specify a local folder path to proceed.'); return; }
 
     const auth = {};

@@ -77,7 +77,7 @@ async function handleScan(req, res) {
       sendProgress({ step: 'init', message: `Scanning local path: ${repoDir}` });
     } else {
       repoName = name || (repo.split('/').pop() || 'repo').replace(/\.git$/, '');
-      sendProgress({ step: 'cloning', message: `Cloning Bitbucket repository: ${repoName}...` });
+      sendProgress({ step: 'cloning', message: `Cloning repository: ${repoName}...` });
       repoDir = await cloneRepo(repo, env, path.join(ROOT, 'work'), branch);
     }
 

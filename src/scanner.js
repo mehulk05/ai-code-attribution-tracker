@@ -33,16 +33,18 @@ export function buildAuthedUrl(repoUrl, env) {
   if (env.BITBUCKET_TOKEN) {
     u.username = 'x-token-auth';
     u.password = env.BITBUCKET_TOKEN;
+    return u.toString();
   } else if (env.BITBUCKET_USERNAME && env.BITBUCKET_APP_PASSWORD) {
     u.username = env.BITBUCKET_USERNAME;
     u.password = env.BITBUCKET_APP_PASSWORD;
+    return u.toString();
   } else if (env.BITBUCKET_EMAIL && env.BITBUCKET_API_TOKEN) {
     u.username = env.BITBUCKET_EMAIL;
     u.password = env.BITBUCKET_API_TOKEN;
-  } else {
-    throw new Error('No Bitbucket credentials found in env. See .env.example.');
+    return u.toString();
   }
-  return u.toString();
+  // Fall back to original URL if no credentials are provided (e.g. public GitHub or public Bitbucket)
+  return repoUrl;
 }
 
 export async function cloneRepo(repoUrl, env, workDir, branch) {
