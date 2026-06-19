@@ -517,6 +517,63 @@
     color: var(--muted);
     line-height: 1.5;
   }
+
+  /* Page load sequential fadeInUp animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .branding, .theme-toggle-wrap {
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  #form {
+    animation: fadeInUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .placeholder svg, .placeholder h2, .placeholder p {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .guide-card:nth-child(1) {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.1s;
+    opacity: 0;
+  }
+  .guide-card:nth-child(2) {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.25s;
+    opacity: 0;
+  }
+  .guide-card:nth-child(3) {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: 0.4s;
+    opacity: 0;
+  }
+
+  /* Report Reveal spring animation */
+  @keyframes reportReveal {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  #output.reveal-active {
+    animation: reportReveal 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  
+  .progress-box {
+    animation: reportReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 </style>
 </head>
 <body>
@@ -758,6 +815,7 @@
     };
 
     // Setup visual progress box
+    $('output').classList.remove('reveal-active');
     $('placeholder').style.display = 'flex';
     $('placeholder').innerHTML = `
       <div class="progress-box">
@@ -869,6 +927,7 @@
             
             $('placeholder').style.display = 'none';
             $('output').style.display = 'grid';
+            $('output').classList.add('reveal-active');
 
             // Fire native notification if permission granted
             if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
