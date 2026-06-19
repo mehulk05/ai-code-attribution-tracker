@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>g99-ui-widget — AI Heuristic Analysis Report</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #111827;
+      --panel2: #1f2937;
+      --line: rgba(255,255,255,0.08);
+      --ink: #f9fafb;
+      --muted: #9ca3af;
+      --accent: #06b6d4;
+      --primary: #3b6cf6;
+      --shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    h1 { margin: 0; font-size: 28px; font-weight: 800; }
+    .meta { font-size: 13px; color: var(--muted); text-align: right; }
+    .tag { background: var(--panel2); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-family: monospace; }
+    
+    /* Hero KPI card */
+    .hero {
+      background: linear-gradient(135deg, #1e1b4b, #311042);
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: var(--shadow);
+    }
+    .hero .title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #a5b4fc; }
+    .hero .pct { font-size: 54px; font-weight: 800; margin: 8px 0; }
+    .hero .desc { font-size: 15px; color: #cbd5e1; max-width: 750px; }
+    
+    /* KPI grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
+    .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); }
+    .kpi .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+    .kpi .val { font-size: 28px; font-weight: 700; margin-top: 6px; }
+    
+    h2 { font-size: 18px; margin: 30px 0 15px; border-left: 4px solid var(--accent); padding-left: 10px; }
+    
+    .panel-box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 30px;
+      overflow-x: auto;
+    }
+    
+    table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    td.n { font-variant-numeric: tabular-nums; text-align: right; }
+    td.dev { font-weight: 600; color: #fff; }
+    
+    .bar-container {
+      width: 70px;
+      background: rgba(255,255,255,0.06);
+      height: 6px;
+      border-radius: 3px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+      overflow: hidden;
+    }
+    .bar-fill { height: 100%; border-radius: 3px; }
+    
+    td.hash { font-family: monospace; color: var(--accent); }
+    td.msg { max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    td.files { max-width: 300px; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>AI Heuristic Code Report</h1>
+        <div style="margin-top:8px"><span class="tag">g99-ui-widget @ origin/master</span></div>
+      </div>
+      <div class="meta">
+        Generated: 2026-06-19<br>
+        Files scanned: 113
+      </div>
+    </header>
+
+    <div class="hero">
+      <div class="title">Est. AI Code Percentage (Master Branch)</div>
+      <div class="pct">78.7%</div>
+      <div class="desc">
+        Based on the commit velocity heuristic, approximately <strong>78.7%</strong> of the lines checked into matching source files on master are classified as AI-generated/pasted. This scans for single commits adding >120 lines to a file with minimal deletions.
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="kpi">
+        <div class="lbl">Active LOC (Master)</div>
+        <div class="val">17,964</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Total Historical LOC Added</div>
+        <div class="val">24,679</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Estimated AI LOC Added</div>
+        <div class="val">19,426</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">AI Flagged Commits</div>
+        <div class="val">8</div>
+      </div>
+    </div>
+
+    <h2>Developer Contribution &amp; AI Analysis</h2>
+    <div class="panel-box">
+      <table>
+        <thead>
+          <tr>
+            <th>Developer</th>
+            <th style="text-align:right;">Active Lines (Master)</th>
+            <th style="text-align:right;">Active Share</th>
+            <th style="text-align:right;">Commits</th>
+            <th style="text-align:right;">Total Lines Added</th>
+            <th style="text-align:right;">AI Lines Added</th>
+            <th style="text-align:right;">AI %</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+        <td class="dev">Mehul Kothari</td>
+        <td class="n">16,354</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:91.03763081718994%; background:#3b6cf6;"></div></div>
+          91.0%
+        </td>
+        <td class="n">327</td>
+        <td class="n">21,550</td>
+        <td class="n">17,701</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:82.13921113689095%; background:#06b6d4;"></div></div>
+          <strong>82.1%</strong>
+        </td>
+      </tr><tr>
+        <td class="dev">Sai Somanath</td>
+        <td class="n">1,038</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:5.7782231128924515%; background:#3b6cf6;"></div></div>
+          5.8%
+        </td>
+        <td class="n">17</td>
+        <td class="n">1,093</td>
+        <td class="n">0</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:0%; background:#06b6d4;"></div></div>
+          <strong>0.0%</strong>
+        </td>
+      </tr><tr>
+        <td class="dev">Harish Verma</td>
+        <td class="n">284</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:1.5809396570919616%; background:#3b6cf6;"></div></div>
+          1.6%
+        </td>
+        <td class="n">1</td>
+        <td class="n">1,341</td>
+        <td class="n">1,341</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:100%; background:#06b6d4;"></div></div>
+          <strong>100.0%</strong>
+        </td>
+      </tr><tr>
+        <td class="dev">Manish Patidar</td>
+        <td class="n">238</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:1.3248719661545312%; background:#3b6cf6;"></div></div>
+          1.3%
+        </td>
+        <td class="n">37</td>
+        <td class="n">292</td>
+        <td class="n">0</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:0%; background:#06b6d4;"></div></div>
+          <strong>0.0%</strong>
+        </td>
+      </tr><tr>
+        <td class="dev">devod0485@gmail.com</td>
+        <td class="n">36</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:0.2004008016032064%; background:#3b6cf6;"></div></div>
+          0.2%
+        </td>
+        <td class="n">2</td>
+        <td class="n">388</td>
+        <td class="n">384</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:98.96907216494846%; background:#06b6d4;"></div></div>
+          <strong>99.0%</strong>
+        </td>
+      </tr><tr>
+        <td class="dev">Soham Sanghrajka</td>
+        <td class="n">14</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:0.07793364506791362%; background:#3b6cf6;"></div></div>
+          0.1%
+        </td>
+        <td class="n">3</td>
+        <td class="n">15</td>
+        <td class="n">0</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:0%; background:#06b6d4;"></div></div>
+          <strong>0.0%</strong>
+        </td>
+      </tr><tr>
+        <td class="dev">Monika Desai</td>
+        <td class="n">0</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:0%; background:#3b6cf6;"></div></div>
+          0.0%
+        </td>
+        <td class="n">3</td>
+        <td class="n">0</td>
+        <td class="n">0</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:0%; background:#06b6d4;"></div></div>
+          <strong>0.0%</strong>
+        </td>
+      </tr><tr>
+        <td class="dev">Yogesh Paygude</td>
+        <td class="n">0</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:0%; background:#3b6cf6;"></div></div>
+          0.0%
+        </td>
+        <td class="n">1</td>
+        <td class="n">0</td>
+        <td class="n">0</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:0%; background:#06b6d4;"></div></div>
+          <strong>0.0%</strong>
+        </td>
+      </tr><tr>
+        <td class="dev">kundan.kumar@growth99.net</td>
+        <td class="n">0</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:0%; background:#3b6cf6;"></div></div>
+          0.0%
+        </td>
+        <td class="n">1</td>
+        <td class="n">0</td>
+        <td class="n">0</td>
+        <td class="n">
+          <div class="bar-container"><div class="bar-fill" style="width:0%; background:#06b6d4;"></div></div>
+          <strong>0.0%</strong>
+        </td>
+      </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Flagged AI Commits (Audit Trail - Top 30)</h2>
+    <div class="panel-box">
+      <table>
+        <thead>
+          <tr>
+            <th>Commit</th>
+            <th>Date</th>
+            <th>Author</th>
+            <th style="text-align:right;">Lines Added</th>
+            <th>Commit Message</th>
+            <th>Flagged Files</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+      <td class="hash"><code>2d45896</code></td>
+      <td class="date">2025-12-23</td>
+      <td class="author">Mehul Kothari</td>
+      <td class="n">338</td>
+      <td class="msg">Merged in G99PRODUCT-2086 (pull request #35)</td>
+      <td class="files">chat6.component.scss (+234/-11)</td>
+    </tr><tr>
+      <td class="hash"><code>96c11e8</code></td>
+      <td class="date">2025-12-22</td>
+      <td class="author">Mehul Kothari</td>
+      <td class="n">1,387</td>
+      <td class="msg">Merged in G99PRODUCT-2086 (pull request #34)</td>
+      <td class="files">chat7.component.html (+168/-0), chat7.component.scss (+348/-0)</td>
+    </tr><tr>
+      <td class="hash"><code>99926dc</code></td>
+      <td class="date">2025-03-17</td>
+      <td class="author">Mehul Kothari</td>
+      <td class="n">301</td>
+      <td class="msg">Merged in G99PRODUCT-603 (pull request #3)</td>
+      <td class="files">symptom-selection-confirmation-modal.component.scss (+170/-0)</td>
+    </tr><tr>
+      <td class="hash"><code>bc872d9</code></td>
+      <td class="date">2024-10-09</td>
+      <td class="author">devod0485@gmail.com</td>
+      <td class="n">384</td>
+      <td class="msg">self assesment selected bodypart and on gender change remove selcted</td>
+      <td class="files">preview.component.html (+354/-15)</td>
+    </tr><tr>
+      <td class="hash"><code>ff4b6dc</code></td>
+      <td class="date">2024-09-30</td>
+      <td class="author">Harish Verma</td>
+      <td class="n">1,341</td>
+      <td class="msg">Squashed commit of the following</td>
+      <td class="files">chat6.component.scss (+291/-0), chat6.component.ts (+837/-0)</td>
+    </tr><tr>
+      <td class="hash"><code>99b9794</code></td>
+      <td class="date">2024-09-25</td>
+      <td class="author">Mehul Kothari</td>
+      <td class="n">3,309</td>
+      <td class="msg">Squashed commit of the following</td>
+      <td class="files">chat5.component.html (+426/-0), chat5.component.scss (+671/-0), chat5.component.ts (+957/-0), Iform.ts (+207/-0), dyanamic-form.component.html (+276/-0), dyanamic-form.component.ts (+275/-0)</td>
+    </tr><tr>
+      <td class="hash"><code>714afe5</code></td>
+      <td class="date">2024-09-23</td>
+      <td class="author">Mehul Kothari</td>
+      <td class="n">11,971</td>
+      <td class="msg">Squashed commit of the following</td>
+      <td class="files">dental-page-container.component.html (+135/-0), model.ts (+151/-0), preview.component.html (+9813/-0), preview.component.scss (+168/-0), selfassessment-page-container.component.ts (+146/-0), card.component.ts (+148/-0), styles.scss (+531/-0)</td>
+    </tr><tr>
+      <td class="hash"><code>fe71184</code></td>
+      <td class="date">2024-08-15</td>
+      <td class="author">Mehul Kothari</td>
+      <td class="n">395</td>
+      <td class="msg">initial commit</td>
+      <td class="files">app.component.html (+336/-0)</td>
+    </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

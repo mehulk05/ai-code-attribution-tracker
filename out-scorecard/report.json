@@ -1,0 +1,170 @@
+{
+  "repo": "g99-ui-widget",
+  "generatedAt": "2026-06-19T09:55:32.988Z",
+  "branch": "origin/master",
+  "summary": {
+    "totalActiveLOC": 17964,
+    "totalLinesAdded": 24679,
+    "totalAiLinesAdded": 19426,
+    "repoAiPct": 78.7,
+    "files": 113
+  },
+  "perDeveloper": [
+    {
+      "name": "Mehul Kothari",
+      "activeLinesOwned": 16354,
+      "activeSharePct": 91,
+      "commits": 327,
+      "linesAdded": 21550,
+      "aiLinesAdded": 17701,
+      "aiPct": 82.1,
+      "aiCommits": 6
+    },
+    {
+      "name": "Sai Somanath",
+      "activeLinesOwned": 1038,
+      "activeSharePct": 5.8,
+      "commits": 17,
+      "linesAdded": 1093,
+      "aiLinesAdded": 0,
+      "aiPct": 0,
+      "aiCommits": 0
+    },
+    {
+      "name": "Harish Verma",
+      "activeLinesOwned": 284,
+      "activeSharePct": 1.6,
+      "commits": 1,
+      "linesAdded": 1341,
+      "aiLinesAdded": 1341,
+      "aiPct": 100,
+      "aiCommits": 1
+    },
+    {
+      "name": "Manish Patidar",
+      "activeLinesOwned": 238,
+      "activeSharePct": 1.3,
+      "commits": 37,
+      "linesAdded": 292,
+      "aiLinesAdded": 0,
+      "aiPct": 0,
+      "aiCommits": 0
+    },
+    {
+      "name": "devod0485@gmail.com",
+      "activeLinesOwned": 36,
+      "activeSharePct": 0.2,
+      "commits": 2,
+      "linesAdded": 388,
+      "aiLinesAdded": 384,
+      "aiPct": 99,
+      "aiCommits": 1
+    },
+    {
+      "name": "Soham Sanghrajka",
+      "activeLinesOwned": 14,
+      "activeSharePct": 0.1,
+      "commits": 3,
+      "linesAdded": 15,
+      "aiLinesAdded": 0,
+      "aiPct": 0,
+      "aiCommits": 0
+    },
+    {
+      "name": "Monika Desai",
+      "activeLinesOwned": 0,
+      "activeSharePct": 0,
+      "commits": 3,
+      "linesAdded": 0,
+      "aiLinesAdded": 0,
+      "aiPct": 0,
+      "aiCommits": 0
+    },
+    {
+      "name": "Yogesh Paygude",
+      "activeLinesOwned": 0,
+      "activeSharePct": 0,
+      "commits": 1,
+      "linesAdded": 0,
+      "aiLinesAdded": 0,
+      "aiPct": 0,
+      "aiCommits": 0
+    },
+    {
+      "name": "kundan.kumar@growth99.net",
+      "activeLinesOwned": 0,
+      "activeSharePct": 0,
+      "commits": 1,
+      "linesAdded": 0,
+      "aiLinesAdded": 0,
+      "aiPct": 0,
+      "aiCommits": 0
+    }
+  ],
+  "flaggedCommits": [
+    {
+      "hash": "2d45896",
+      "author": "Mehul Kothari",
+      "date": "2025-12-23",
+      "message": "Merged in G99PRODUCT-2086 (pull request #35)",
+      "linesAdded": 338,
+      "details": "chat6.component.scss (+234/-11)"
+    },
+    {
+      "hash": "96c11e8",
+      "author": "Mehul Kothari",
+      "date": "2025-12-22",
+      "message": "Merged in G99PRODUCT-2086 (pull request #34)",
+      "linesAdded": 1387,
+      "details": "chat7.component.html (+168/-0), chat7.component.scss (+348/-0)"
+    },
+    {
+      "hash": "99926dc",
+      "author": "Mehul Kothari",
+      "date": "2025-03-17",
+      "message": "Merged in G99PRODUCT-603 (pull request #3)",
+      "linesAdded": 301,
+      "details": "symptom-selection-confirmation-modal.component.scss (+170/-0)"
+    },
+    {
+      "hash": "bc872d9",
+      "author": "devod0485@gmail.com",
+      "date": "2024-10-09",
+      "message": "self assesment selected bodypart and on gender change remove selcted",
+      "linesAdded": 384,
+      "details": "preview.component.html (+354/-15)"
+    },
+    {
+      "hash": "ff4b6dc",
+      "author": "Harish Verma",
+      "date": "2024-09-30",
+      "message": "Squashed commit of the following",
+      "linesAdded": 1341,
+      "details": "chat6.component.scss (+291/-0), chat6.component.ts (+837/-0)"
+    },
+    {
+      "hash": "99b9794",
+      "author": "Mehul Kothari",
+      "date": "2024-09-25",
+      "message": "Squashed commit of the following",
+      "linesAdded": 3309,
+      "details": "chat5.component.html (+426/-0), chat5.component.scss (+671/-0), chat5.component.ts (+957/-0), Iform.ts (+207/-0), dyanamic-form.component.html (+276/-0), dyanamic-form.component.ts (+275/-0)"
+    },
+    {
+      "hash": "714afe5",
+      "author": "Mehul Kothari",
+      "date": "2024-09-23",
+      "message": "Squashed commit of the following",
+      "linesAdded": 11971,
+      "details": "dental-page-container.component.html (+135/-0), model.ts (+151/-0), preview.component.html (+9813/-0), preview.component.scss (+168/-0), selfassessment-page-container.component.ts (+146/-0), card.component.ts (+148/-0), styles.scss (+531/-0)"
+    },
+    {
+      "hash": "fe71184",
+      "author": "Mehul Kothari",
+      "date": "2024-08-15",
+      "message": "initial commit",
+      "linesAdded": 395,
+      "details": "app.component.html (+336/-0)"
+    }
+  ]
+}

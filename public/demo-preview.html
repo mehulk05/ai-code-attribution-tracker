@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>g99-ui-widget — AI Heuristic Analysis Report (Demo)</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- ChartJS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg: #090a0f;
+      --panel: #11141d;
+      --panel-light: #161a26;
+      --line: rgba(255, 255, 255, 0.07);
+      --ink: #f1f5f9;
+      --muted: #8e9bb0;
+      --faint: #5a667a;
+      
+      --neon-cyan: #0df;
+      --neon-violet: #a855f7;
+      --neon-green: #22c55e;
+      --neon-yellow: #f59e0b;
+      
+      --shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      line-height: 1.6;
+      padding: 30px 20px;
+    }
+
+    /* Wide layout to utilize left/right space */
+    .wrap { max-width: 1400px; margin: 0 auto; }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+    header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: #fff;
+    }
+    header .meta {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+    }
+    header .tag {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--neon-cyan);
+    }
+
+    /* Grid of 4 Cards at top */
+    .metric-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 1024px) {
+      .metric-cards { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .metric-cards { grid-template-columns: 1fr; }
+    }
+    
+    .m-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 165px;
+      box-shadow: var(--shadow);
+    }
+    
+    .m-card.cyan-glow {
+      border-color: rgba(0, 221, 255, 0.35);
+      box-shadow: 0 0 20px rgba(0, 221, 255, 0.04), var(--shadow);
+    }
+    .m-card.violet-glow {
+      border-color: rgba(168, 85, 247, 0.35);
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.04), var(--shadow);
+    }
+    
+    /* Layout using flex side-by-side to guarantee zero overlapping */
+    .m-card .c-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+    
+    .m-card .title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    
+    .m-card .value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      margin-top: 6px;
+      white-space: nowrap;
+    }
+    .m-card.cyan-glow .value { color: var(--neon-cyan); }
+    .m-card.violet-glow .value { color: var(--neon-violet); }
+    
+    .m-card .desc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    
+    .m-card .footer {
+      font-size: 11px;
+      color: var(--faint);
+      margin-top: auto;
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .m-card .footer .trend-up {
+      color: var(--neon-green);
+      font-weight: 600;
+    }
+    
+    /* Ring Chart Container - Flex Sized */
+    .ring-container-relative {
+      position: relative;
+      width: 66px;
+      height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .circular-chart {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .circle-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.04);
+      stroke-width: 3.2;
+    }
+    .circle {
+      fill: none;
+      stroke-width: 3.2;
+      stroke-linecap: round;
+      stroke: var(--neon-cyan);
+      filter: drop-shadow(0 0 4px rgba(0, 221, 255, 0.6));
+    }
+    .ring-text {
+      position: absolute;
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+    
+    /* Mini bar chart inside Card 2 */
+    .mini-bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 38px;
+      margin-top: 10px;
+      width: 100%;
+    }
+    .mini-bar {
+      flex: 1;
+      background: rgba(168, 85, 247, 0.2);
+      border-radius: 2px;
+    }
+    .mini-bar.highlight {
+      background: var(--neon-violet);
+      filter: drop-shadow(0 0 3px rgba(168, 85, 247, 0.6));
+    }
+    
+    /* Card 3 sparkline wave */
+    .sparkline-container {
+      height: 38px;
+      margin-top: 10px;
+      display: flex;
+      align-items: flex-end;
+      width: 100%;
+    }
+    
+    /* Charts panel grid - 2 columns */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 840px) {
+      .charts-grid { grid-template-columns: 1fr; }
+    }
+    .chart-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .chart-card h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 15px;
+      color: var(--muted);
+    }
+    .chart-container {
+      position: relative;
+      height: 240px;
+      width: 100%;
+    }
+
+    /* Main Table Panel Box */
+    .panel-box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    
+    .panel-box h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #fff;
+      margin-bottom: 20px;
+      font-weight: 700;
+      border-left: 4px solid var(--neon-cyan);
+      padding-left: 10px;
+    }
+    
+    /* Executive Summary styled layouts */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 15px;
+    }
+    @media (max-width: 768px) {
+      .summary-grid { grid-template-columns: 1fr; }
+    }
+    .summary-section {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+    }
+    .summary-section h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      margin-bottom: 12px;
+      color: var(--neon-cyan);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .summary-section ul {
+      margin-left: 20px;
+      margin-bottom: 10px;
+    }
+    .summary-section li {
+      margin-bottom: 8px;
+      color: #cbd5e1;
+      font-size: 13.5px;
+    }
+    .summary-section strong {
+      color: #fff;
+    }
+    
+    table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
+    th, td { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 700; }
+    
+    td.n { font-variant-numeric: tabular-nums; text-align: right; }
+    
+    /* Developer column with badges */
+    .dev-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .dev-cell .idx {
+      font-size: 12px;
+      color: var(--faint);
+      width: 14px;
+    }
+    .dev-cell .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .dev-cell .avatar.mk { background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; }
+    .dev-cell .avatar.ss { background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); color: #d8b4fe; }
+    .dev-cell .avatar.hv { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; }
+    .dev-cell .avatar.mp { background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fde047; }
+    .dev-cell .name {
+      font-weight: 600;
+      color: #fff;
+    }
+    
+    /* Active lines cell with inner progress capsule bar */
+    .active-lines-cell {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      white-space: nowrap;
+    }
+    .loc-val {
+      font-weight: 600;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+      min-width: 85px;
+    }
+    .active-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-grow: 1;
+      width: 120px;
+    }
+    .active-bar-bg {
+      height: 7px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      flex: 1;
+      overflow: hidden;
+      display: block;
+    }
+    .active-bar-fill {
+      height: 100%;
+      border-radius: 10px;
+    }
+    .active-bar-fill.mk { background: var(--neon-cyan); box-shadow: 0 0 8px rgba(0, 221, 255, 0.5); }
+    .active-bar-fill.ss { background: linear-gradient(90deg, var(--neon-cyan), var(--neon-violet)); box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); }
+    .active-bar-fill.hv { background: var(--neon-violet); }
+    .active-bar-fill.mp { background: var(--neon-violet); }
+    
+    .pct-label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      min-width: 32px;
+      text-align: right;
+    }
+    
+    /* AI % cell layout */
+    .ai-pct-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 150px;
+    }
+    .ai-pct-hdr {
+      font-weight: 600;
+      color: #fff;
+      font-size: 13px;
+    }
+    .ai-pct-bar-bg {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .ai-pct-bar-fill {
+      height: 100%;
+      background: var(--neon-cyan);
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0, 221, 255, 0.6);
+    }
+    
+    tr:hover td { background: rgba(255, 255, 255, 0.015); }
+    
+    td.hash { font-family: monospace; color: var(--neon-cyan); font-weight: 600; }
+    td.msg { max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f8fafc; }
+    td.files { max-width: 300px; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    
+    <!-- HEADER -->
+    <header>
+      <div>
+        <h1>AI Heuristic Code Report</h1>
+        <div style="margin-top:8px"><span class="tag">g99-ui-widget @ origin/master</span></div>
+      </div>
+      <div class="meta">
+        Generated: 2026-06-19<br>
+        Files scanned: 113
+      </div>
+    </header>
+    
+    <!-- TOP CARDS GRID -->
+    <div class="metric-cards">
+      
+      <!-- Card 1: AI-Generated Percentage -->
+      <div class="m-card cyan-glow">
+        <div class="c-top">
+          <div style="flex: 1; min-width: 0;">
+            <div class="title">AI-Generated Percentage</div>
+            <div class="value">78.7%</div>
+            <div class="desc">of codebase AI-assisted</div>
+          </div>
+          <div class="ring-container-relative">
+            <svg class="circular-chart" viewBox="0 0 36 36">
+              <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path class="circle" stroke-dasharray="78.7, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            </svg>
+            <div class="ring-text">78.7%</div>
+          </div>
+        </div>
+        <div class="footer">
+          <span class="trend-up">↑ 4.1% <span style="color: var(--muted); font-weight:normal;">vs last period</span></span>
+        </div>
+      </div>
+      
+      <!-- Card 2: Est. AI LOC Added -->
+      <div class="m-card violet-glow">
+        <div class="c-top">
+          <div>
+            <div class="title">Est. AI LOC Added</div>
+            <div class="value">24,561 <span style="font-size:14px; color:var(--muted); font-weight:normal;">LOC</span></div>
+          </div>
+        </div>
+        <div class="mini-bar-chart">
+          <div class="mini-bar" style="height: 12%;"></div>
+          <div class="mini-bar" style="height: 25%;"></div>
+          <div class="mini-bar highlight" style="height: 60%;"></div>
+          <div class="mini-bar" style="height: 35%;"></div>
+          <div class="mini-bar" style="height: 18%;"></div>
+          <div class="mini-bar" style="height: 50%;"></div>
+          <div class="mini-bar highlight" style="height: 80%;"></div>
+          <div class="mini-bar" style="height: 40%;"></div>
+          <div class="mini-bar" style="height: 95%;"></div>
+        </div>
+        <div class="footer">
+          <span>AI Lines <span class="trend-up" style="margin-left: 8px;">+2.3k this week</span></span>
+        </div>
+      </div>
+      
+      <!-- Card 3: Active LOC -->
+      <div class="m-card">
+        <div class="c-top">
+          <div>
+            <div class="title">Active LOC</div>
+            <div class="value">48,915 <span style="font-size:14px; color:var(--muted); font-weight:normal;">LOC</span></div>
+            <div class="desc">Total lines of code</div>
+          </div>
+        </div>
+        <div class="sparkline-container">
+          <svg viewBox="0 0 100 30" width="100%" height="32" style="overflow: visible;">
+            <defs>
+              <linearGradient id="wave-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="rgba(6, 182, 212, 0.25)" />
+                <stop offset="100%" stop-color="rgba(6, 182, 212, 0)" />
+              </linearGradient>
+            </defs>
+            <path d="M0,22 Q15,12 30,24 T60,8 T85,18 T100,5" fill="none" stroke="var(--neon-cyan)" stroke-width="2.2" stroke-linecap="round" style="filter: drop-shadow(0 0 4px rgba(0, 221, 255, 0.4));" />
+            <path d="M0,22 Q15,12 30,24 T60,8 T85,18 T100,5 L100,30 L0,30 Z" fill="url(#wave-grad)" />
+          </svg>
+        </div>
+        <div class="footer">
+          <span>Last scan: 3 min ago</span>
+        </div>
+      </div>
+      
+      <!-- Card 4: Files Scanned -->
+      <div class="m-card">
+        <div class="c-top">
+          <div>
+            <div class="title">Files Scanned</div>
+            <div class="value">1,348 <span style="font-size:14px; color:var(--muted); font-weight:normal;">Files</span></div>
+            <div class="desc">Analyzed today</div>
+          </div>
+        </div>
+        <div class="footer">
+          <span>Last scan: 3 min ago</span>
+        </div>
+      </div>
+      
+    </div>
+
+    <!-- CHARTS PANEL GRID -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Active LOC Distribution (Top 10 Devs)</h3>
+        <div class="chart-container">
+          <canvas id="activeLocChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>AI vs. Manual Lines Added (Top 10 Devs)</h3>
+        <div class="chart-container">
+          <canvas id="aiVsManualChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEVELOPER TABLE (Placed above the Summary text) -->
+    <div class="panel-box">
+      <h2>Developer Contribution &amp; AI Usage</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Developer</th>
+            <th>Active Lines Owned</th>
+            <th style="text-align:right;">Active Share</th>
+            <th style="text-align:right;">Commits</th>
+            <th style="text-align:right;">Total Lines Added</th>
+            <th style="text-align:right;">AI Lines Added</th>
+            <th>AI %</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="dev-cell">
+                <span class="idx">1.</span>
+                <span class="avatar mk">MK</span>
+                <span class="name">Mehul Kothari</span>
+              </div>
+            </td>
+            <td>
+              <div class="active-lines-cell">
+                <span class="loc-val">16,354 LOC</span>
+                <div class="active-bar-wrap">
+                  <div class="active-bar-bg">
+                    <div class="active-bar-fill mk" style="width: 91%;"></div>
+                  </div>
+                  <span class="pct-label">91%</span>
+                </div>
+              </div>
+            </td>
+            <td class="n" style="font-weight:600; color:#fff;">91.0%</td>
+            <td class="n" style="color:var(--muted);">327</td>
+            <td class="n" style="color:var(--muted);">21,550</td>
+            <td class="n" style="color:var(--neon-cyan); font-weight:600;">17,701</td>
+            <td>
+              <div class="ai-pct-cell">
+                <span class="ai-pct-hdr">AI 82.1%</span>
+                <div class="ai-pct-bar-bg">
+                  <div class="ai-pct-bar-fill" style="width: 82.1%;"></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="dev-cell">
+                <span class="idx">2.</span>
+                <span class="avatar ss">SS</span>
+                <span class="name">Sai Somanath</span>
+              </div>
+            </td>
+            <td>
+              <div class="active-lines-cell">
+                <span class="loc-val">1,038 LOC</span>
+                <div class="active-bar-wrap">
+                  <div class="active-bar-bg">
+                    <div class="active-bar-fill ss" style="width: 5.8%;"></div>
+                  </div>
+                  <span class="pct-label">5.8%</span>
+                </div>
+              </div>
+            </td>
+            <td class="n" style="font-weight:600; color:#fff;">5.8%</td>
+            <td class="n" style="color:var(--muted);">17</td>
+            <td class="n" style="color:var(--muted);">1,093</td>
+            <td class="n" style="color:var(--neon-cyan); font-weight:600;">0</td>
+            <td>
+              <div class="ai-pct-cell">
+                <span class="ai-pct-hdr">AI 0.0%</span>
+                <div class="ai-pct-bar-bg">
+                  <div class="ai-pct-bar-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="dev-cell">
+                <span class="idx">3.</span>
+                <span class="avatar hv">HV</span>
+                <span class="name">Harish Verma</span>
+              </div>
+            </td>
+            <td>
+              <div class="active-lines-cell">
+                <span class="loc-val">284 LOC</span>
+                <div class="active-bar-wrap">
+                  <div class="active-bar-bg">
+                    <div class="active-bar-fill hv" style="width: 1.6%;"></div>
+                  </div>
+                  <span class="pct-label">1.6%</span>
+                </div>
+              </div>
+            </td>
+            <td class="n" style="font-weight:600; color:#fff;">1.6%</td>
+            <td class="n" style="color:var(--muted);">1</td>
+            <td class="n" style="color:var(--muted);">1,341</td>
+            <td class="n" style="color:var(--neon-cyan); font-weight:600;">1,341</td>
+            <td>
+              <div class="ai-pct-cell">
+                <span class="ai-pct-hdr">AI 100.0%</span>
+                <div class="ai-pct-bar-bg">
+                  <div class="ai-pct-bar-fill" style="width: 100%;"></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="dev-cell">
+                <span class="idx">4.</span>
+                <span class="avatar mp">MP</span>
+                <span class="name">Manish Patidar</span>
+              </div>
+            </td>
+            <td>
+              <div class="active-lines-cell">
+                <span class="loc-val">238 LOC</span>
+                <div class="active-bar-wrap">
+                  <div class="active-bar-bg">
+                    <div class="active-bar-fill mp" style="width: 1.3%;"></div>
+                  </div>
+                  <span class="pct-label">1.3%</span>
+                </div>
+              </div>
+            </td>
+            <td class="n" style="font-weight:600; color:#fff;">1.3%</td>
+            <td class="n" style="color:var(--muted);">37</td>
+            <td class="n" style="color:var(--muted);">292</td>
+            <td class="n" style="color:var(--neon-cyan); font-weight:600;">0</td>
+            <td>
+              <div class="ai-pct-cell">
+                <span class="ai-pct-hdr">AI 0.0%</span>
+                <div class="ai-pct-bar-bg">
+                  <div class="ai-pct-bar-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- EXECUTIVE SUMMARY & FINDINGS SECTION (Placed down) -->
+    <div class="panel-box">
+      <h2>Executive Analysis Findings &amp; Summary</h2>
+      
+      <div class="summary-grid">
+        
+        <!-- Frontend Widget Findings -->
+        <div class="summary-section">
+          <h3>Frontend UI Widget Findings</h3>
+          <ul>
+            <li><strong>AI-Assisted Code Ratio:</strong> Historically, <strong>79.3%</strong> of the lines checked into matching frontend files on master are classified as AI-generated/pasted under the commit velocity rule.</li>
+            <li><strong>Active Line Ownership:</strong> Mehul Kothari owns <strong>91.0%</strong> (16,354 LOC) of the currently active codebase on master, with <strong>82.1%</strong> estimated AI ratio.</li>
+            <li><strong>High AI Commits:</strong> Devs `harsish verma` and `devodz` show high AI-generated commit patterns (100% and 98.9% on flagged commits respectively), pasting large components (`chat6.component.ts` and `preview.component.html`) directly.</li>
+            <li><strong>Manual Standard Contributor:</strong> Sai Somanath owns <strong>5.8%</strong> (1,038 LOC) of active lines with <strong>0.0%</strong> AI footprint.</li>
+          </ul>
+        </div>
+        
+        <!-- Backend Findings -->
+        <div class="summary-section">
+          <h3>Backend Product Service Findings</h3>
+          <ul>
+            <li><strong>Codebase Scale:</strong> Analyzed a massive backend repository with <strong>2,026 active Java files</strong> and <strong>209,439 active lines of code</strong> on the master branch.</li>
+            <li><strong>Core Line Ownership:</strong> Pushkar Murkute owns <strong>27.0%</strong> (56.6k LOC) of active master code, followed by avinasha (11.1%) and Monika Desai (8.9%).</li>
+            <li><strong>AI Distribution:</strong> Pushkar Murkute shows an AI ratio of <strong>26.1%</strong> over 2,998 commits. Monika Desai shows <strong>46.1%</strong> AI share, while Rishi shows <strong>67.4%</strong> AI-assisted ratio.</li>
+            <li><strong>High Concentration AI:</strong> Mehul Kothari (69.4% AI ratio) and Kundan Kumar (51.8% AI ratio) show concentrated usage of LLM-assisted generation on master integrations.</li>
+          </ul>
+        </div>
+        
+        <!-- Methodology Exclusions -->
+        <div class="summary-section" style="grid-column: span 2;">
+          <h3>Scan Exclusions &amp; Data Refinements</h3>
+          <ul>
+            <li><strong>Excluded Merge Commits:</strong> Prevents false-positives by ignoring the reviewer who clicked "Merge" on a PR and assigning attribution purely to original commit authors.</li>
+            <li><strong>Exclusion Rules:</strong> Standard test/spec configurations (`.spec.ts`, `.test.ts`), lockfiles (`package-lock.json`), minimized libraries, and static graphics/assets are filtered to avoid skewing line counts.</li>
+            <li><strong>Velocity Heuristics:</strong> Captures developer copy-paste dumps using a strict filter: commits adding <strong>>120 lines</strong> (frontend) or <strong>>150 lines</strong> (backend) to a single file with <strong>&lt;5% deletions</strong>.</li>
+          </ul>
+        </div>
+        
+      </div>
+    </div>
+
+    <!-- AUDIT TRAIL -->
+    <div class="panel-box">
+      <h2>Flagged AI Commits (Audit Trail - Top 30)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Commit</th>
+            <th>Date</th>
+            <th>Author</th>
+            <th style="text-align:right;">Lines Added</th>
+            <th>Commit Message</th>
+            <th>Flagged Files</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="hash"><code>2d45896</code></td>
+            <td>2025-12-23</td>
+            <td>Mehul Kothari</td>
+            <td class="n">338</td>
+            <td class="msg">Merged in G99PRODUCT-2086 (pull request #35)</td>
+            <td class="files">chat6.component.scss (+234/-11)</td>
+          </tr>
+          <tr>
+            <td class="hash"><code>96c11e8</code></td>
+            <td>2025-12-22</td>
+            <td>Mehul Kothari</td>
+            <td class="n">1,387</td>
+            <td class="msg">Merged in G99PRODUCT-2086 (pull request #34)</td>
+            <td class="files">chat7.component.html (+168/-0), chat7.component.scss (+348/-0)</td>
+          </tr>
+          <tr>
+            <td class="hash"><code>ff4b6dc</code></td>
+            <td>2024-09-30</td>
+            <td>Harish Verma</td>
+            <td class="n">1,341</td>
+            <td class="msg">Squashed commit of the following</td>
+            <td class="files">chat6.component.scss (+291/-0), chat6.component.ts (+837/-0)</td>
+          </tr>
+          <tr>
+            <td class="hash"><code>99b9794</code></td>
+            <td>2024-09-25</td>
+            <td>Mehul Kothari</td>
+            <td class="n">3,309</td>
+            <td class="msg">Squashed commit of the following</td>
+            <td class="files">chat5.component.html (+426/-0), chat5.component.scss (+671/-0), chat5.component.ts (+957/-0)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+  </div>
+
+  <script>
+    // active LOC Distribution (Doughnut Chart)
+    const activeCtx = document.getElementById('activeLocChart').getContext('2d');
+    new Chart(activeCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Mehul Kothari', 'Sai Somanath', 'Harish Verma', 'Manish Patidar'],
+        datasets: [{
+          data: [16354, 1038, 284, 238],
+          backgroundColor: [
+            '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'
+          ],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { color: '#94a3b8', font: { size: 11, family: 'Plus Jakarta Sans' } }
+          }
+        }
+      }
+    });
+
+    // AI vs Manual Lines Added (Stacked Bar Chart)
+    const aiCtx = document.getElementById('aiVsManualChart').getContext('2d');
+    new Chart(aiCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Mehul Kothari', 'Sai Somanath', 'Harish Verma', 'Manish Patidar'],
+        datasets: [
+          {
+            label: 'AI Lines Added',
+            data: [17701, 0, 1341, 0],
+            backgroundColor: '#06b6d4'
+          },
+          {
+            label: 'Manual Lines Added',
+            data: [3849, 1093, 0, 292],
+            backgroundColor: '#8b5cf6'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            stacked: true,
+            ticks: { color: '#94a3b8', font: { size: 9, family: 'Plus Jakarta Sans' } },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          },
+          y: {
+            stacked: true,
+            ticks: { color: '#94a3b8', font: { size: 9, family: 'Plus Jakarta Sans' } },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#94a3b8', font: { size: 11, family: 'Plus Jakarta Sans' } }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Code Scanner — Developer Analytics Console</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #06070d;
+    --panel: rgba(13, 17, 30, 0.7);
+    --panel-hover: rgba(18, 24, 43, 0.9);
+    --panel-light: rgba(255, 255, 255, 0.02);
+    --line: rgba(255, 255, 255, 0.06);
+    --line-focus: rgba(0, 242, 254, 0.4);
+    --ink: #f8fafc;
+    --muted: #94a3b8;
+    --faint: #475569;
+    
+    --neon-cyan: #00f2fe;
+    --neon-violet: #7f00ff;
+    --neon-green: #10b981;
+    --neon-yellow: #f59e0b;
+    --primary-gradient: linear-gradient(135deg, #7f00ff 0%, #00f2fe 100%);
+    --shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  /* Ambient glowing neon spots */
+  .glow-1 {
+    position: fixed;
+    top: -200px;
+    left: -200px;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(127, 0, 255, 0.12) 0%, rgba(0,0,0,0) 70%);
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  .glow-2 {
+    position: fixed;
+    bottom: -200px;
+    right: -200px;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(0, 242, 254, 0.12) 0%, rgba(0,0,0,0) 70%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .wrap { max-width: 1550px; margin: 0 auto; padding: 40px 24px 80px; }
+  
+  /* Modern premium logo/header section */
+  .header-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 24px;
+  }
+  .branding { display: flex; align-items: center; gap: 14px; }
+  .logo-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--primary-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+  }
+  h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #ffffff 30%, #c084fc 70%, #00f2fe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  
+  .layout { display: grid; grid-template-columns: 380px 1fr; gap: 28px; align-items: start; }
+  @media(max-width: 1024px) { .layout { grid-template-columns: 1fr; } }
+  
+  /* Console Form Panel */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+    transition: var(--transition);
+  }
+  .panel:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Mode Selector Switch */
+  .mode-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    margin-bottom: 20px;
+  }
+  .mode-btn {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .mode-btn.active {
+    background: var(--primary-gradient);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(127, 0, 255, 0.25);
+  }
+  
+  /* Steps styling inside form */
+  .form-section-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--neon-cyan);
+    margin: 22px 0 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .form-section-title:first-of-type { margin-top: 0; }
+  .form-section-title span {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(0, 242, 254, 0.15);
+    font-size: 10px;
+    align-items: center;
+    justify-content: center;
+    color: var(--neon-cyan);
+    border: 1px solid rgba(0, 242, 254, 0.3);
+  }
+  
+  label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin: 12px 0 6px;
+    font-weight: 600;
+  }
+  
+  /* Inputs wrapper */
+  .input-wrapper {
+    position: relative;
+    width: 100%;
+  }
+  input, select {
+    width: 100%;
+    background: rgba(10, 14, 26, 0.6);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--ink);
+    padding: 12px 14px;
+    font-size: 13.5px;
+    font-family: inherit;
+    transition: var(--transition);
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--line-focus);
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.12);
+    background: rgba(10, 14, 26, 0.85);
+  }
+  
+  .hint { font-size: 11.5px; color: var(--faint); margin-top: 5px; }
+  
+  /* Smooth animation for auth configurations */
+  .auth-fields {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.35s ease-out;
+  }
+  .auth-fields.show {
+    max-height: 250px;
+    opacity: 1;
+    margin-top: 10px;
+    padding: 10px 0;
+    border-top: 1px dashed rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Remote fields vs Local fields conditional layout panels */
+  .remote-only, .local-only {
+    display: block;
+  }
+  
+  /* Action Button with animated gradient */
+  button[type="submit"] {
+    margin-top: 28px;
+    width: 100%;
+    background: var(--primary-gradient);
+    background-size: 200% 200%;
+    border: none;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+    padding: 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 5px 20px rgba(127, 0, 255, 0.3);
+    animation: gradientShift 6s ease infinite;
+  }
+  
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  button[type="submit"]:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 242, 254, 0.4);
+    filter: brightness(1.15);
+  }
+  button[type="submit"]:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  button:disabled { opacity: 0.55; cursor: not-allowed; }
+  
+  .security-badge {
+    display: flex;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    padding: 12px;
+    border-radius: 10px;
+    margin-top: 20px;
+    font-size: 11px;
+    color: var(--faint);
+    line-height: 1.4;
+  }
+  .security-badge svg { flex-shrink: 0; color: var(--neon-cyan); }
+  
+  /* Results section on the right */
+  .results { min-height: 500px; display: grid; grid-template-rows: auto 1fr; gap: 20px; }
+  
+  .placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 500px;
+    color: var(--muted);
+    border: 1px dashed var(--line);
+    border-radius: 20px;
+    text-align: center;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.005);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Progress box container */
+  .progress-box {
+    width: 100%;
+    max-width: 440px;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  /* Real-time progress bar */
+  .progress-bar-outer {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin: 20px 0 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+  }
+  .progress-bar-inner {
+    height: 100%;
+    width: 0%;
+    background: var(--primary-gradient);
+    border-radius: 10px;
+    transition: width 0.15s ease-out;
+  }
+  
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-family: 'Outfit', sans-serif;
+  }
+  .progress-current-file {
+    font-size: 11px;
+    color: var(--faint);
+    font-family: monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+  }
+  
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 8px; }
+  
+  /* Glass card design matching the report */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--neon-cyan);
+  }
+  .card:nth-child(2)::before { background: var(--neon-violet); }
+  .card:nth-child(3)::before { background: var(--neon-green); }
+  .card:nth-child(4)::before { background: var(--neon-yellow); }
+  
+  .card .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+  .card .v { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 700; margin-top: 6px; }
+  
+  /* Toolbar at TOP of Results Panel */
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--line);
+    padding: 12px 18px;
+    border-radius: 14px;
+    backdrop-filter: blur(8px);
+    margin-bottom: 8px;
+  }
+  .toolbar .grow { flex: 1; color: var(--muted); font-size: 13.5px; font-weight: 600; }
+  
+  .btn-sm {
+    width: auto;
+    margin: 0;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #download {
+    background: linear-gradient(135deg, #7f00ff, #5b21b6);
+    border: 1px solid rgba(127, 0, 255, 0.4);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(127, 0, 255, 0.3);
+  }
+  #download:hover {
+    background: linear-gradient(135deg, #9063ff, #7f00ff);
+    box-shadow: 0 6px 20px rgba(127, 0, 255, 0.45);
+    transform: translateY(-1px);
+  }
+  #openTab {
+    background: linear-gradient(135deg, #00f2fe, #0099ff);
+    border: 1px solid rgba(0, 242, 254, 0.4);
+    color: #05070c;
+    box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+  }
+  #openTab:hover {
+    background: linear-gradient(135deg, #33f5ff, #00f2fe);
+    box-shadow: 0 6px 20px rgba(0, 242, 254, 0.4);
+    transform: translateY(-1px);
+  }
+  
+  iframe {
+    width: 100%;
+    height: 850px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: transparent;
+    box-shadow: var(--shadow);
+  }
+  
+  .spinner-box { text-align: center; }
+  .spinner {
+    width: 44px;
+    height: 44px;
+    border: 3px solid rgba(255, 255, 255, 0.05);
+    border-top-color: var(--neon-cyan);
+    border-radius: 50%;
+    animation: spin .8s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+    margin: 0 auto 18px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  .err {
+    background: rgba(239, 68, 68, 0.07);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border-radius: 14px;
+    padding: 20px;
+    font-size: 14px;
+    text-align: left;
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.1);
+    display: flex;
+    gap: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="glow-1"></div>
+<div class="glow-2"></div>
+
+<div class="wrap">
+  <!-- BRANDING HEADER -->
+  <header class="header-area">
+    <div class="branding">
+      <div class="logo-icon">🔬</div>
+      <div>
+        <h1>AI Code Scanner</h1>
+        <div class="sub">Forensic Git blame analysis & code velocity forensics console</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- SCAN CONTROL CENTER FORM -->
+    <form class="panel" id="form">
+      
+      <!-- SCAN MODE SWITCHER -->
+      <div class="mode-selector">
+        <button type="button" class="mode-btn active" id="btn-remote" onclick="setMode('remote')">Bitbucket Remote</button>
+        <button type="button" class="mode-btn" id="btn-local" onclick="setMode('local')">Local Folder Scan</button>
+      </div>
+      
+      <!-- Section 1: Target -->
+      <div class="form-section-title"><span>1</span> Target Location</div>
+      
+      <!-- Remote Only Field -->
+      <div class="remote-only">
+        <label>Bitbucket Repo URL</label>
+        <div class="input-wrapper">
+          <input id="repo" placeholder="https://bitbucket.org/workspace/repo.git" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Local Only Field -->
+      <div class="local-only" style="display:none;">
+        <label>Local Folder Path</label>
+        <input id="localPath" placeholder="E:/work/ui/g99-ui-widget" autocomplete="off">
+        <div class="hint">Check standard files without remote network latency.</div>
+      </div>
+
+      <label>Branch Name</label>
+      <input id="branch" placeholder="master (defaults if omitted)" autocomplete="off">
+
+      <label>Report Display Name</label>
+      <input id="name" placeholder="Auto-generated from path/URL" autocomplete="off">
+
+      <!-- Section 2: Authentication (Remote Only) -->
+      <div class="remote-only">
+        <div class="form-section-title"><span>2</span> Authentication</div>
+        
+        <label>Auth Credentials</label>
+        <select id="authMethod">
+          <option value="server">Use server default (.env Token)</option>
+          <option value="token">Repository Access Token</option>
+          <option value="app">App Password (Username + Pass)</option>
+          <option value="api">Atlassian account API Token</option>
+        </select>
+
+        <div class="auth-fields" data-for="token">
+          <label>Access Token</label>
+          <input id="token" type="password" placeholder="Paste access token" autocomplete="off">
+        </div>
+        <div class="auth-fields" data-for="app">
+          <label>Bitbucket Username</label>
+          <input id="username" placeholder="Username" autocomplete="off">
+          <label>App Password</label>
+          <input id="appPassword" type="password" placeholder="••••••••••••" autocomplete="off">
+        </div>
+        <div class="auth-fields" data-for="api">
+          <label>Atlassian Email</label>
+          <input id="email" placeholder="email@company.com" autocomplete="off">
+          <label>API Token</label>
+          <input id="apiToken" type="password" placeholder="Paste API token" autocomplete="off">
+        </div>
+      </div>
+
+      <button type="submit" id="go">Launch Heuristic Scan</button>
+      
+      <div class="security-badge">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div>
+          <strong>Transient Scan Policy</strong><br>
+          Credentials are used dynamically to checkout repositories and are never cached or logged.
+        </div>
+      </div>
+    </form>
+
+    <!-- REPORT PREVIEW SCREEN -->
+    <div class="results">
+      <div id="placeholder" class="placeholder">
+        <div>
+          <div style="font-size: 32px; margin-bottom: 12px;">📊</div>
+          <div style="font-weight: 600; color: #fff; margin-bottom: 6px;">Ready to Scan</div>
+          <div style="max-width: 320px; font-size: 13px; color: var(--muted);">Specify a Bitbucket repository or local folder path above to compile the developer stats.</div>
+        </div>
+      </div>
+      
+      <div id="output" style="display:none">
+        <!-- TOOLBAR AT THE TOP -->
+        <div class="toolbar">
+          <div class="grow" id="caption"></div>
+          <button class="btn-sm" id="download">⬇ Download HTML</button>
+          <button class="btn-sm" id="openTab">↗ Open in tab</button>
+        </div>
+        
+        <div class="cards" id="cards"></div>
+        <iframe id="frame" title="Report Results View"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const authSel = $('authMethod');
+  let scanMode = 'remote';
+  
+  // Toggle between Remote Scan & Local Scan modes
+  function setMode(mode) {
+    scanMode = mode;
+    if (mode === 'remote') {
+      $('btn-remote').classList.add('active');
+      $('btn-local').classList.remove('active');
+      document.querySelectorAll('.remote-only').forEach(el => el.style.display = 'block');
+      document.querySelectorAll('.local-only').forEach(el => el.style.display = 'none');
+    } else {
+      $('btn-remote').classList.remove('active');
+      $('btn-local').classList.add('active');
+      document.querySelectorAll('.remote-only').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.local-only').forEach(el => el.style.display = 'block');
+    }
+  }
+
+  // Request notifications permission
+  if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+    document.addEventListener('click', () => {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }, { once: true });
+  }
+
+  function syncAuth() {
+    document.querySelectorAll('.auth-fields').forEach(el => {
+      if (el.dataset.for === authSel.value) {
+        el.classList.add('show');
+      } else {
+        el.classList.remove('show');
+      }
+    });
+  }
+  authSel.addEventListener('change', syncAuth); syncAuth();
+
+  let lastHtml = '';
+  function card(k, v, color) {
+    return `<div class="card"><div class="k">${k}</div><div class="v" style="color:${color||'var(--ink)'}">${v}</div></div>`;
+  }
+
+  $('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const repo = $('repo').value.trim();
+    const localPath = $('localPath').value.trim();
+    
+    if (scanMode === 'remote' && !repo) { alert('Specify a Bitbucket repository URL to proceed.'); return; }
+    if (scanMode === 'local' && !localPath) { alert('Specify a local folder path to proceed.'); return; }
+
+    const auth = {};
+    if (scanMode === 'remote') {
+      const m = authSel.value;
+      if (m === 'token') auth.token = $('token').value.trim();
+      else if (m === 'app') { auth.username = $('username').value.trim(); auth.appPassword = $('appPassword').value.trim(); }
+      else if (m === 'api') { auth.email = $('email').value.trim(); auth.apiToken = $('apiToken').value.trim(); }
+    }
+
+    const body = { 
+      repo: scanMode === 'remote' ? repo : '', 
+      localPath: scanMode === 'local' ? localPath : '', 
+      branch: $('branch').value.trim(), 
+      name: $('name').value.trim(), 
+      auth 
+    };
+
+    // Setup visual progress box
+    $('placeholder').style.display = 'flex';
+    $('placeholder').innerHTML = `
+      <div class="progress-box">
+        <div class="spinner"></div>
+        <div style="font-weight: 600; color: #fff; font-size: 15px;" id="p-status">Contacting scan server...</div>
+        <div class="progress-bar-outer">
+          <div class="progress-bar-inner" id="p-bar" style="width: 0%;"></div>
+        </div>
+        <div class="progress-meta">
+          <span id="p-pct">0%</span>
+          <span id="p-time">Estimating time...</span>
+        </div>
+        <div class="progress-current-file" id="p-file" style="display: none;">Waiting...</div>
+      </div>
+    `;
+    $('output').style.display = 'none';
+    $('go').disabled = true;
+
+    const startTime = Date.now();
+
+    try {
+      const response = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        let errMsg = 'scan failed';
+        try { errMsg = JSON.parse(errText).error || errMsg; } catch {}
+        throw new Error(errMsg);
+      }
+
+      // Stream the response body
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // Hold onto the last incomplete chunk
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+
+          let msg;
+          try { msg = JSON.parse(line); } catch (e) { continue; }
+
+          if (msg.type === 'progress') {
+            if (msg.step === 'init' || msg.step === 'cloning' || msg.step === 'listing') {
+              $('p-status').textContent = msg.message;
+              $('p-bar').style.width = '5%';
+              $('p-pct').textContent = '5%';
+              $('p-file').style.display = 'none';
+            } 
+            else if (msg.step === 'blaming') {
+              const current = msg.current || 0;
+              const total = msg.total || 1;
+              const pctVal = Math.round((current / total) * 100);
+              
+              $('p-status').textContent = `Running Git blame analysis...`;
+              $('p-bar').style.width = `${pctVal}%`;
+              $('p-pct').textContent = `${pctVal}% (${current}/${total})`;
+              
+              // Estimating Time Remaining
+              const elapsedMs = Date.now() - startTime;
+              if (current > 5) {
+                const msPerFile = elapsedMs / current;
+                const remainingFiles = total - current;
+                const remainingSeconds = Math.round((remainingFiles * msPerFile) / 1000);
+                $('p-time').textContent = remainingSeconds > 0 ? `Est. remaining: ~${remainingSeconds}s` : 'Finishing blame...';
+              } else {
+                $('p-time').textContent = 'Estimating remaining time...';
+              }
+
+              if (msg.file) {
+                $('p-file').style.display = 'block';
+                $('p-file').textContent = `📄 blaming: ${msg.file}`;
+              }
+            } 
+            else if (msg.step === 'commits') {
+              $('p-status').textContent = msg.message;
+              $('p-bar').style.width = '98%';
+              $('p-pct').textContent = '98%';
+              $('p-file').style.display = 'none';
+            }
+          } 
+          else if (msg.type === 'error') {
+            throw new Error(msg.error || 'stream error occurred');
+          } 
+          else if (msg.type === 'complete') {
+            const s = msg.summary || {};
+            
+            // Render KPI cards at top
+            $('cards').innerHTML =
+              card('AI-assisted code', (s.repoAiPct ?? 0) + '%', 'var(--neon-cyan)') +
+              card('Est. AI LOC Added', (s.totalAiLinesAdded || 0).toLocaleString(), 'var(--neon-violet)') +
+              card('Active LOC', (s.totalActiveLOC || 0).toLocaleString(), 'var(--neon-green)') +
+              card('Files Scanned', s.files || 0, 'var(--neon-yellow)');
+            
+            $('caption').innerHTML = `🔍 scanned: <strong>${esc(msg.repo)}</strong> — ${(s.repoAiPct ?? 0)}% AI ratio on master`;
+            lastHtml = msg.html;
+            $('frame').srcdoc = msg.html;
+            
+            $('placeholder').style.display = 'none';
+            $('output').style.display = 'grid';
+
+            // Fire native notification if permission granted
+            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+              new Notification(`🔬 Scan Complete: ${msg.repo}`, {
+                body: `Analyzed ${s.files} files successfully. Master branch is ${s.repoAiPct}% AI-assisted.`,
+                icon: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%2300f2fe" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      $('placeholder').innerHTML = '<div class="err"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg><div><strong>Scan Failed</strong><br>' + err.message + '</div></div>';
+    } finally {
+      $('go').disabled = false;
+    }
+  });
+
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+  $('download').addEventListener('click', () => {
+    const blob = new Blob([lastHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'ai-code-report.html'; a.click();
+    URL.revokeObjectURL(url);
+  });
+  
+  $('openTab').addEventListener('click', () => {
+    const w = window.open(); w.document.write(lastHtml); w.document.close();
+  });
+</script>
+</body>
+</html>

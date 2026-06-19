@@ -1,0 +1,18 @@
+{
+  "name": "ai-code-scanner",
+  "version": "1.0.0",
+  "description": "Forensic estimation of AI-generated code share (per repo, per tool, per developer) via git blame + code-style fingerprints.",
+  "type": "module",
+  "bin": {
+    "ai-scan": "src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "scan": "node src/cli.js"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  }
+}
