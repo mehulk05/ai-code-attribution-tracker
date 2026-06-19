@@ -1,0 +1,7 @@
+node_modules
+.git
+.env
+out
+out-ps
+out-scorecard
+*.log
