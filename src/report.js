@@ -518,25 +518,23 @@ export function buildHtml(repoName, a) {
       padding-top: 10px;
     }
     
-    /* Active lines cell with inner progress capsule bar */
+    /* Active lines cell with inner progress capsule bar stacked vertically */
     .active-lines-cell {
       display: flex;
-      align-items: center;
-      gap: 14px;
-      white-space: nowrap;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
     }
     .loc-val {
       font-weight: 600;
       color: #fff;
       font-variant-numeric: tabular-nums;
-      min-width: 85px;
     }
     .active-bar-wrap {
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-grow: 1;
-      width: 120px;
+      width: 140px;
     }
     .active-bar-bg {
       height: 7px;
