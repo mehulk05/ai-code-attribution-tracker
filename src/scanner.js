@@ -308,6 +308,85 @@ export async function analyze(repoDir, { onProgress } = {}) {
     };
   });
 
+  // 3. Live LLM Scanning (Optional)
+  let llmAnalysis = null;
+  if (llmMode !== 'skip') {
+    if (onLlmProgress) onLlmProgress("Triggering Live AI Code scans. Streaming source files...");
+    const selectedLlmFiles = files.slice(0, 3);
+    const fileContentsForLlm = [];
+    for (const file of selectedLlmFiles) {
+      let content = '';
+      try {
+        content = readFileSync(path.join(repoDir, file), 'utf8');
+        content = content.split('\n').slice(0, 150).join('\n');
+        fileContentsForLlm.push({ filename: file, content });
+      } catch {}
+    }
+
+    const prompt = `You are a Senior Code Forensics and Attribution Engine.
+Below is the Heuristic Git Blame Scanner summary data:
+- Total Active Lines of Code: ${totalActiveLOC}
+- Est. AI-Assisted Code Percentage: ${repoAiPct.toFixed(1)}%
+- Total Source Files Scanned: ${files.length}
+
+Here is the developer contribution profile metrics:
+${JSON.stringify(Object.entries(perDev).map(([name, d]) => ({
+  name,
+  activeLOC: d.activeLinesOwned,
+  aiLinesAdded: d.aiLinesAdded,
+  aiPercentage: d.aiPct
+})), null, 2)}
+
+Below are source code snippets from 3 representative files in this repository:
+${fileContentsForLlm.map(f => `--- FILE: ${f.filename} ---\n${f.content}\n`).join('\n')}
+
+Based on the Git metrics and stylistic analysis of the code, perform a scan to:
+1. Estimate the AI-assisted code percentage for the repository overall (0-100).
+2. Rate the overall codebase quality score (0-100) based on maintainability and style.
+3. List primary AI style indicators found (e.g. comment dividers, JSDoc patterns, etc.).
+4. Provide a top recommendation / action item.
+5. Provide a short review summary.
+6. Provide an estimate of AI-written code percentage per developer.
+
+Return your response STRICTLY as a valid JSON object matching this schema exactly (do not output any markdown formatting, preambles, or postambles, only the JSON block):
+{
+  "aiProbability": number,
+  "codeQualityScore": number,
+  "stylisticTells": ["tell1", "tell2"],
+  "recommendation": "top recommendation text",
+  "summary": "short review summary",
+  "devAiShare": [
+     { "name": "developer name", "aiPct": number }
+  ]
+}`;
+
+    llmAnalysis = {};
+    
+    if (llmMode === 'claude' || llmMode === 'both') {
+      try {
+        if (onLlmProgress) onLlmProgress("Contacting Claude 3.5 Sonnet API for semantic audit...");
+        llmAnalysis.claude = await callClaude(prompt, claudeKey);
+        if (onLlmProgress) onLlmProgress("Claude review completed successfully!");
+      } catch (err) {
+        console.error(err);
+        llmAnalysis.claude = { error: err.message };
+        if (onLlmProgress) onLlmProgress(`Claude scan failed: ${err.message}`);
+      }
+    }
+    
+    if (llmMode === 'gemini' || llmMode === 'both') {
+      try {
+        if (onLlmProgress) onLlmProgress("Contacting Google Gemini 1.5 API for stylometry check...");
+        llmAnalysis.gemini = await callGemini(prompt, geminiKey);
+        if (onLlmProgress) onLlmProgress("Gemini review completed successfully!");
+      } catch (err) {
+        console.error(err);
+        llmAnalysis.gemini = { error: err.message };
+        if (onLlmProgress) onLlmProgress(`Gemini scan failed: ${err.message}`);
+      }
+    }
+  }
+
   return {
     totalActiveLOC,
     totalLinesAdded,
@@ -321,6 +400,50 @@ export async function analyze(repoDir, { onProgress } = {}) {
       claude: claudePct,
       antigravity: geminiPct,
       mixed: mixedPct
-    }
+    },
+    llmAnalysis
   };
+}
+
+async function callClaude(prompt, apiKey) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: 'claude-3-5-sonnet-20240620',
+      max_tokens: 1024,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Claude API call failed: ${res.status} ${errText || res.statusText}`);
+  }
+  const data = await res.json();
+  const text = data.content[0].text;
+  const match = text.match(/\{[\s\S]*\}/);
+  return JSON.parse(match ? match[0] : text);
+}
+
+async function callGemini(prompt, apiKey) {
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    })
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini API call failed: ${res.status} ${errText || res.statusText}`);
+  }
+  const data = await res.json();
+  const text = data.candidates[0].content.parts[0].text;
+  const match = text.match(/\{[\s\S]*\}/);
+  return JSON.parse(match ? match[0] : text);
 }

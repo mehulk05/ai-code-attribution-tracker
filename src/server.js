@@ -41,7 +41,7 @@ async function handleScan(req, res) {
   let opts;
   try { opts = JSON.parse(raw || '{}'); } catch { return send(res, 400, { error: 'invalid JSON' }); }
 
-  const { repo, branch, name, localPath, auth = {} } = opts;
+  const { repo, branch, name, localPath, auth = {}, llmMode = 'skip', claudeKey = '', geminiKey = '' } = opts;
   if (!repo && !localPath) return send(res, 400, { error: 'Provide a repo URL or a localPath.' });
 
   // Credentials from the request override the server's env (request is transient, never stored).
@@ -84,8 +84,14 @@ async function handleScan(req, res) {
     sendProgress({ step: 'listing', message: 'Analyzing file tree on master...' });
     
     const a = await analyze(repoDir, {
+      llmMode,
+      claudeKey,
+      geminiKey,
       onProgress: (file, idx, total) => {
         sendProgress({ step: 'blaming', file: path.basename(file), current: idx, total });
+      },
+      onLlmProgress: (msg) => {
+        sendProgress({ step: 'commits', message: msg });
       }
     });
 

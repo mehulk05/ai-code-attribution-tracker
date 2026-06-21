@@ -967,6 +967,29 @@
         </div>
       </div>
 
+      <!-- Section 3: Live LLM Code Audit (Optional) -->
+      <div class="form-section-title"><span>3</span> Live LLM Code Audit</div>
+      
+      <div class="form-group">
+        <label>AI Analysis Mode</label>
+        <select id="llmMode" onchange="syncLlmKeys()">
+          <option value="skip" selected>Skip AI Scanning (Heuristic Blame Only)</option>
+          <option value="claude">Claude 3.5 Sonnet Scan Only</option>
+          <option value="gemini">Google Gemini 1.5 Scan Only</option>
+          <option value="both">Compare Both (Claude + Gemini)</option>
+        </select>
+      </div>
+
+      <div id="claudeKeyGroup" style="display:none; margin-top: 12px;">
+        <label>Claude API Key</label>
+        <input id="claudeKey" type="password" placeholder="sk-ant-..." autocomplete="off">
+      </div>
+
+      <div id="geminiKeyGroup" style="display:none; margin-top: 12px;">
+        <label>Gemini API Key</label>
+        <input id="geminiKey" type="password" placeholder="AIzaSy..." autocomplete="off">
+      </div>
+
       <button type="submit" id="go">Launch Heuristic Scan</button>
       
       <div class="security-badge">
@@ -1108,6 +1131,12 @@
   }
   authSel.addEventListener('change', syncAuth); syncAuth();
 
+  function syncLlmKeys() {
+    const mode = $('llmMode').value;
+    $('claudeKeyGroup').style.display = (mode === 'claude' || mode === 'both') ? 'block' : 'none';
+    $('geminiKeyGroup').style.display = (mode === 'gemini' || mode === 'both') ? 'block' : 'none';
+  }
+
   let lastHtml = '';
   function card(k, v, color) {
     return `<div class="card"><div class="k">${k}</div><div class="v" style="color:${color||'var(--ink)'}">${v}</div></div>`;
@@ -1120,6 +1149,21 @@
     
     if (scanMode === 'remote' && !repo) { alert('Specify a Git repository URL to proceed.'); return; }
     if (scanMode === 'local' && !localPath) { alert('Specify a local folder path to proceed.'); return; }
+
+    const llmMode = $('llmMode').value;
+    const claudeKey = $('claudeKey').value.trim();
+    const geminiKey = $('geminiKey').value.trim();
+
+    if ((llmMode === 'claude' || llmMode === 'both') && !claudeKey) {
+      alert('Please enter your Claude API Key to run Claude analysis.');
+      $('claudeKey').focus();
+      return;
+    }
+    if ((llmMode === 'gemini' || llmMode === 'both') && !geminiKey) {
+      alert('Please enter your Gemini API Key to run Gemini analysis.');
+      $('geminiKey').focus();
+      return;
+    }
 
     const auth = {};
     if (scanMode === 'remote') {
@@ -1134,7 +1178,10 @@
       localPath: scanMode === 'local' ? localPath : '', 
       branch: $('branch').value.trim(), 
       name: $('name').value.trim(), 
-      auth 
+      auth,
+      llmMode,
+      claudeKey,
+      geminiKey
     };
 
     // Setup visual progress box

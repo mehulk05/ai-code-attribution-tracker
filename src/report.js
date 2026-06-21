@@ -53,7 +53,142 @@ export function writeJson(outDir, repoName, a) {
 
 export function buildHtml(repoName, a) {
   const date = new Date().toISOString().slice(0, 10);
-  
+  const aiPercentage = f1(a.repoAiPct);
+
+  let llmComparisonHtml = '';
+  if (a.llmAnalysis && (a.llmAnalysis.claude || a.llmAnalysis.gemini)) {
+    const hasClaude = !!a.llmAnalysis.claude && !a.llmAnalysis.claude.error;
+    const hasGemini = !!a.llmAnalysis.gemini && !a.llmAnalysis.gemini.error;
+    
+    let cardsHtml = '';
+    
+    // Heuristic Card (Always present)
+    cardsHtml += `
+      <div class="compare-card highlight-cyan">
+        <h3>🔬 Heuristic Blame Scanner</h3>
+        <div class="comp-metric">
+          <div class="comp-label">Estimated AI-Assisted Code %</div>
+          <div class="comp-val">${aiPercentage}%</div>
+        </div>
+        <div class="comp-metric">
+          <div class="comp-label">Basis / Methodology</div>
+          <div class="comp-val" style="font-size: 13px; font-weight: normal; color: var(--muted); line-height: 1.4;">Git history metadata, commit line spikes, and static signature checks.</div>
+        </div>
+        <div class="comp-metric">
+          <div class="comp-label">Style Indicators Found</div>
+          <ul class="comp-list">
+            <li>Line addition speed spikes</li>
+            <li>Single-file large copy-pastes</li>
+            <li>Static comment dividers</li>
+          </ul>
+        </div>
+      </div>
+    `;
+    
+    if (hasClaude) {
+      const c = a.llmAnalysis.claude;
+      const devShares = (c.devAiShare || []).map(d => `
+        <div class="comp-dev-row">
+          <span>${esc(d.name)}</span>
+          <span class="val">${d.aiPct}%</span>
+        </div>
+      `).join('');
+      cardsHtml += `
+        <div class="compare-card highlight-violet">
+          <h3>🤖 Claude 3.5 Sonnet</h3>
+          <div class="comp-metric">
+            <div class="comp-label">Estimated AI Code %</div>
+            <div class="comp-val">${c.aiProbability}%</div>
+          </div>
+          <div class="comp-metric">
+            <div class="comp-label">Code Quality Score</div>
+            <div class="comp-val">${c.codeQualityScore}/100</div>
+          </div>
+          <div class="comp-metric">
+            <div class="comp-label">AI Style Tells (Claude)</div>
+            <ul class="comp-list">
+              ${(c.stylisticTells || []).map(t => `<li>${esc(t)}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="comp-metric">
+            <div class="comp-label">Per Developer AI % (Claude Estimate)</div>
+            <div class="comp-dev-shares">${devShares || '<div class="comp-dev-row" style="color:var(--faint)">N/A</div>'}</div>
+          </div>
+          <details class="comp-details">
+            <summary>View Review Summary</summary>
+            <p><strong>Recommendation:</strong> ${esc(c.recommendation)}</p>
+            <p><strong>Summary:</strong> ${esc(c.summary)}</p>
+          </details>
+        </div>
+      `;
+    } else if (a.llmAnalysis.claude && a.llmAnalysis.claude.error) {
+      cardsHtml += `
+        <div class="compare-card highlight-violet">
+          <h3>🤖 Claude 3.5 Sonnet</h3>
+          <div class="comp-metric" style="color:#fca5a5; font-size:12.5px;">
+            <strong>Claude scan failed:</strong><br>${esc(a.llmAnalysis.claude.error)}
+          </div>
+        </div>
+      `;
+    }
+    
+    if (hasGemini) {
+      const g = a.llmAnalysis.gemini;
+      const devShares = (g.devAiShare || []).map(d => `
+        <div class="comp-dev-row">
+          <span>${esc(d.name)}</span>
+          <span class="val">${d.aiPct}%</span>
+        </div>
+      `).join('');
+      cardsHtml += `
+        <div class="compare-card highlight-green">
+          <h3>♊ Google Gemini 1.5</h3>
+          <div class="comp-metric">
+            <div class="comp-label">Estimated AI Code %</div>
+            <div class="comp-val">${g.aiProbability}%</div>
+          </div>
+          <div class="comp-metric">
+            <div class="comp-label">Code Quality Score</div>
+            <div class="comp-val">${g.codeQualityScore}/100</div>
+          </div>
+          <div class="comp-metric">
+            <div class="comp-label">AI Style Tells (Gemini)</div>
+            <ul class="comp-list">
+              ${(g.stylisticTells || []).map(t => `<li>${esc(t)}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="comp-metric">
+            <div class="comp-label">Per Developer AI % (Gemini Estimate)</div>
+            <div class="comp-dev-shares">${devShares || '<div class="comp-dev-row" style="color:var(--faint)">N/A</div>'}</div>
+          </div>
+          <details class="comp-details">
+            <summary>View Review Summary</summary>
+            <p><strong>Recommendation:</strong> ${esc(g.recommendation)}</p>
+            <p><strong>Summary:</strong> ${esc(g.summary)}</p>
+          </details>
+        </div>
+      `;
+    } else if (a.llmAnalysis.gemini && a.llmAnalysis.gemini.error) {
+      cardsHtml += `
+        <div class="compare-card highlight-green">
+          <h3>♊ Google Gemini 1.5</h3>
+          <div class="comp-metric" style="color:#fca5a5; font-size:12.5px;">
+            <strong>Gemini scan failed:</strong><br>${esc(a.llmAnalysis.gemini.error)}
+          </div>
+        </div>
+      `;
+    }
+    
+    llmComparisonHtml = `
+      <div class="panel-box" style="margin-top:24px;">
+        <h2>Forensic Heuristics vs. LLM Code Scan Comparison</h2>
+        <div class="compare-grid">
+          ${cardsHtml}
+        </div>
+      </div>
+    `;
+  }
+
   // Sort developers for data table
   const sortedDevs = Object.entries(a.perDev)
     .sort((x, y) => y[1].activeLinesOwned - x[1].activeLinesOwned);
@@ -592,6 +727,105 @@ export function buildHtml(repoName, a) {
     td.hash { font-family: monospace; color: var(--neon-cyan); font-weight: 600; }
     td.msg { max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #f8fafc; }
     td.files { max-width: 300px; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Live LLM Comparison Matrix Styles */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 15px;
+      margin-bottom: 24px;
+    }
+    
+    .compare-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .compare-card.highlight-cyan { border-color: rgba(0, 221, 255, 0.25); }
+    .compare-card.highlight-violet { border-color: rgba(168, 85, 247, 0.25); }
+    .compare-card.highlight-green { border-color: rgba(34, 197, 94, 0.25); }
+    
+    .compare-card h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .compare-card.highlight-cyan h3 { color: var(--neon-cyan); }
+    .compare-card.highlight-violet h3 { color: var(--neon-violet); }
+    .compare-card.highlight-green h3 { color: var(--neon-green); }
+    
+    .comp-metric {
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+    }
+    .comp-metric:last-of-type { border-bottom: none; }
+    .comp-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .comp-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .comp-list {
+      margin-left: 16px;
+      font-size: 12.5px;
+      color: #cbd5e1;
+    }
+    .comp-list li { margin-bottom: 4px; }
+    
+    .comp-details {
+      margin-top: 15px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .comp-details summary {
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 600;
+      user-select: none;
+    }
+    .comp-details p {
+      font-size: 12.5px;
+      color: #cbd5e1;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    .comp-dev-shares {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .comp-dev-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      color: #cbd5e1;
+    }
+    .comp-dev-row span.val {
+      font-weight: 700;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -802,6 +1036,8 @@ export function buildHtml(repoName, a) {
         
       </div>
     </div>
+
+    ${llmComparisonHtml}
 
     <h2>Flagged AI Commits (Audit Trail - Top 30)</h2>
     <div class="panel-box">
