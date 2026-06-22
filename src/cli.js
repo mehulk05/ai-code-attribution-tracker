@@ -73,7 +73,8 @@ OUTPUT
   }
 
   console.log('Scanning files (git blame + fingerprints)…');
-  const a = analyze(repoDir, {
+  const a = await analyze(repoDir, {
+    branch: args.branch,
     onProgress: (i, n) => process.stdout.write(`\r  ${i}/${n} files`),
   });
   process.stdout.write('\r');

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Pulse — 30-day Developer Analytics</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#141925;--panel2:#1b2230;--line:#27303f;--ink:#eef2f8;--muted:#9aa6b8;--faint:#6b7689;--accent:#5b8cff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.5}
+  .top{max-width:1180px;margin:0 auto;padding:22px 20px 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  h1{font-size:20px;margin:0}.sub{color:var(--muted);font-size:13px}
+  .nav a{color:var(--muted);font-size:13px;text-decoration:none;margin-left:14px}.nav a:hover{color:#fff}
+  .layout{max-width:1180px;margin:14px auto 0;padding:0 20px 60px;display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start}
+  @media(max-width:880px){.layout{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);margin:13px 0 5px}
+  label:first-child{margin-top:0}
+  input,select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:10px 12px;font-size:13.5px;font-family:inherit}
+  input:focus,select:focus{outline:none;border-color:var(--accent)}
+  .hint{font-size:11.5px;color:var(--faint);margin-top:5px}
+  button{margin-top:18px;width:100%;background:var(--accent);border:none;color:#fff;font-weight:600;font-size:15px;padding:12px;border-radius:10px;cursor:pointer}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  .note{font-size:11.5px;color:var(--faint);margin-top:14px;line-height:1.6}
+  .results{min-height:360px}
+  .placeholder{display:flex;align-items:center;justify-content:center;height:380px;color:var(--faint);border:1px dashed var(--line);border-radius:14px;text-align:center;padding:24px}
+  iframe{width:100%;height:1500px;border:1px solid var(--line);border-radius:14px;background:#0b0e14}
+  .spinner{width:30px;height:30px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .err{background:#1f1513;border:1px solid #5e3029;color:#f0b8ae;border-radius:10px;padding:14px;font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="top">
+  <div><h1>📊 Team Pulse</h1><div class="sub">Last-30-day per-developer git analytics, grades &amp; heatmaps</div></div>
+  <div class="nav"><a href="/">← AI Code Scan</a></div>
+</div>
+
+<div class="layout">
+  <form class="panel" id="form">
+    <label>Bitbucket / GitHub repo URL</label>
+    <input id="repo" placeholder="https://bitbucket.org/workspace/repo.git" autocomplete="off">
+    <div class="hint">Or scan a clone already on the server (below).</div>
+
+    <label>Branch (optional)</label>
+    <input id="branch" placeholder="master / main" autocomplete="off">
+
+    <label>Window (days)</label>
+    <select id="windowDays">
+      <option value="30" selected>Last 30 days</option>
+      <option value="60">Last 60 days</option>
+      <option value="90">Last 90 days</option>
+      <option value="14">Last 14 days</option>
+      <option value="7">Last 7 days</option>
+    </select>
+
+    <label>Access token (for private repos)</label>
+    <input id="token" type="password" autocomplete="off" placeholder="Repository read token">
+
+    <label>Local path (advanced — on-server clone)</label>
+    <input id="localPath" placeholder="E:/work/backend/g99-ai-service" autocomplete="off">
+
+    <button type="submit" id="go">Run Team Pulse</button>
+    <div class="note">🔒 Token is used transiently to clone and never stored. Git-only metrics — no AI. ⚠️ Squash-merge repos: commit sizes/attribution are directional.</div>
+  </form>
+
+  <div class="results">
+    <div id="placeholder" class="placeholder">Run a scan to see the 30-day team dashboard.<br>Click any developer row for their full profile, heatmap &amp; commit history.</div>
+    <iframe id="frame" title="team pulse" style="display:none"></iframe>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  $('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const repo = $('repo').value.trim(), localPath = $('localPath').value.trim();
+    if (!repo && !localPath) { alert('Enter a repo URL or a local path.'); return; }
+    const body = {
+      repo, localPath, branch: $('branch').value.trim(),
+      windowDays: $('windowDays').value,
+      auth: { token: $('token').value.trim() || undefined }
+    };
+    $('placeholder').style.display = 'flex';
+    $('placeholder').innerHTML = '<div><div class="spinner"></div>Cloning &amp; analysing… blame over all files can take a minute on big repos.</div>';
+    $('frame').style.display = 'none';
+    $('go').disabled = true;
+    try {
+      const r = await fetch('/api/teampulse', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const data = await r.json();
+      if (!r.ok || data.error) throw new Error(data.error || 'scan failed');
+      $('frame').srcdoc = data.html;
+      $('placeholder').style.display = 'none';
+      $('frame').style.display = 'block';
+    } catch (err) {
+      $('placeholder').innerHTML = '<div class="err">⚠ ' + err.message + '</div>';
+    } finally {
+      $('go').disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

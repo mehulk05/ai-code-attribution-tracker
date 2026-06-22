@@ -16,8 +16,9 @@ async function git(cwd, args) {
 }
 
 // Helper to determine the target master branch in the repository (prioritising origin/master)
-async function getMasterTarget(repoDir) {
-  const targets = ['origin/master', 'master', 'HEAD'];
+async function getMasterTarget(repoDir, targetBranch) {
+  const targets = targetBranch ? [targetBranch, `origin/${targetBranch}`] : [];
+  targets.push('origin/master', 'origin/main', 'master', 'main', 'HEAD');
   for (const t of targets) {
     try {
       await execFilePromise('git', ['rev-parse', '--verify', t], { cwd: repoDir });
@@ -65,8 +66,8 @@ export async function cloneRepo(repoUrl, env, workDir, branch) {
 }
 
 // ── File scope (limited to the master branch tree) ───────────────────────────
-export async function listSourceFiles(repoDir) {
-  const target = await getMasterTarget(repoDir);
+export async function listSourceFiles(repoDir, targetBranch) {
+  const target = targetBranch || await getMasterTarget(repoDir);
   const raw = await git(repoDir, ['ls-tree', '-r', '--name-only', target]);
   const out = raw.split('\n').filter(Boolean);
   return out.filter((f) => {
@@ -76,8 +77,8 @@ export async function listSourceFiles(repoDir) {
 }
 
 // ── Blame: lines per author for one file on master ───────────────────────────
-export async function blameByAuthor(repoDir, file) {
-  const target = await getMasterTarget(repoDir);
+export async function blameByAuthor(repoDir, file, targetBranch) {
+  const target = targetBranch || await getMasterTarget(repoDir);
   let out;
   try {
     out = await git(repoDir, ['blame', '--line-porcelain', target, '--', file]);
@@ -95,9 +96,9 @@ export async function blameByAuthor(repoDir, file) {
 }
 
 // ── Full analysis (Async) ────────────────────────────────────────────────────
-export async function analyze(repoDir, { onProgress } = {}) {
-  const files = await listSourceFiles(repoDir);
-  const target = await getMasterTarget(repoDir);
+export async function analyze(repoDir, { windowDays = 30, since, until, branch, onProgress, llmMode = 'skip', claudeKey = '', geminiKey = '', onLlmProgress, blameCache = null } = {}) {
+  const target = await getMasterTarget(repoDir, branch);
+  const files = await listSourceFiles(repoDir, target);
 
   // 1. Calculate active line ownership (current state on Master)
   console.log('Calculating active line ownership...');
@@ -115,7 +116,7 @@ export async function analyze(repoDir, { onProgress } = {}) {
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     if (onProgress) onProgress(file, i, files.length);
-    const owners = await blameByAuthor(repoDir, file);
+    const owners = blameCache ? (blameCache.get(file)?.ownerWindowCounts || {}) : await blameByAuthor(repoDir, file, target);
     
     let fileActiveLoc = 0;
     for (const [email, n] of Object.entries(owners)) {
@@ -196,7 +197,13 @@ export async function analyze(repoDir, { onProgress } = {}) {
 
   // 2. Parse Non-Merge commits history on Master for AI estimation
   console.log('\nParsing git commit history for AI heuristic detection...');
-  const commitsRaw = await git(repoDir, ['log', '--no-merges', '--format=%H|%an|%ae|%ad|%s', '--date=short', target]);
+  const logArgs = ['log', '--no-merges', '--format=%H|%an|%ae|%ad|%s', '--date=short'];
+  if (since) logArgs.push(`--since=${since}`);
+  else if (windowDays) logArgs.push(`--since=${windowDays}.days.ago`);
+  if (until) logArgs.push(`--until=${until}`);
+  logArgs.push(target);
+  
+  const commitsRaw = await git(repoDir, logArgs);
   const commits = commitsRaw.trim().split('\n').filter(Boolean).map(line => {
     const [hash, author, email, date, message] = line.split('|');
     return { hash, author, email, date, message };
@@ -236,15 +243,18 @@ export async function analyze(repoDir, { onProgress } = {}) {
         const deleted = parseInt(parts[1], 10);
         const file = parts[2];
 
-        // Java, TS, JS, SCSS, HTML source files only
-        if (file && 
-            (file.endsWith('.ts') || file.endsWith('.tsx') || file.endsWith('.js') || file.endsWith('.jsx') || file.endsWith('.java') || file.endsWith('.scss') || file.endsWith('.html')) &&
-            !EXCLUDE_PATTERNS.some((re) => re.test(file))) {
-          
+        // Count CHURN for any source file (incl. .yaml/.yml/.json specs) so
+        // contribution is measured correctly. Apply the AI copy-paste flag ONLY
+        // to code we can fingerprint (DETECTION_EXTENSIONS) — never to templated
+        // specs/markup, where a big paste isn't meaningfully "AI".
+        const ext = '.' + (file.split('.').pop() || '').toLowerCase();
+        const isSource = SOURCE_EXTENSIONS.includes(ext);
+        const isDetectable = DETECTION_EXTENSIONS.includes(ext);
+        if (file && isSource && !EXCLUDE_PATTERNS.some((re) => re.test(file))) {
           if (!isNaN(added)) {
             commitLinesAdded += added;
             // Strict Heuristic: >120 lines in a single file with <5% deletions suggests AI copy-pasting
-            if (added > 120 && (deleted === 0 || (deleted / added) < 0.05)) {
+            if (isDetectable && added > 120 && (deleted === 0 || (deleted / added) < 0.05)) {
               hasLargeChunk = true;
               details.push(`${path.basename(file)} (+${added}/-${deleted})`);
             }
@@ -308,77 +318,69 @@ export async function analyze(repoDir, { onProgress } = {}) {
     };
   });
 
-  // 3. Live LLM Scanning (Optional)
+  // 3. Live LLM Scanning (Optional) — INDEPENDENT of the heuristic.
+  // The models receive ONLY raw source code: no heuristic %, no per-dev metrics,
+  // no "expected" answer. This makes each model a genuine second opinion instead
+  // of an echo of our own number. Per-developer attribution stays on the
+  // deterministic blame side (an LLM can't attribute by author from code alone).
   let llmAnalysis = null;
   if (llmMode !== 'skip') {
-    if (onLlmProgress) onLlmProgress("Triggering Live AI Code scans. Streaming source files...");
-    const selectedLlmFiles = files.slice(0, 3);
-    const fileContentsForLlm = [];
-    for (const file of selectedLlmFiles) {
-      let content = '';
+    if (onLlmProgress) onLlmProgress('Sampling source files for the AI reviewers...');
+
+    // Spread the sample across the repo so it's representative, not just the first few files.
+    const detectFiles = files.filter((f) => DETECTION_EXTENSIONS.includes(path.extname(f)));
+    const MAX_FILES = 24, PER_FILE_LINES = 140, CHAR_BUDGET = 55000;
+    const step = Math.max(1, Math.floor(detectFiles.length / MAX_FILES));
+    const samples = [];
+    let budget = CHAR_BUDGET;
+    for (let i = 0; i < detectFiles.length && samples.length < MAX_FILES && budget > 200; i += step) {
+      const f = detectFiles[i];
       try {
-        content = readFileSync(path.join(repoDir, file), 'utf8');
-        content = content.split('\n').slice(0, 150).join('\n');
-        fileContentsForLlm.push({ filename: file, content });
+        let c = readFileSync(path.join(repoDir, f), 'utf8').split('\n').slice(0, PER_FILE_LINES).join('\n');
+        if (c.length > budget) c = c.slice(0, budget);
+        budget -= c.length;
+        samples.push({ filename: f, content: c });
       } catch {}
     }
 
-    const prompt = `You are a Senior Code Forensics and Attribution Engine.
-Below is the Heuristic Git Blame Scanner summary data:
-- Total Active Lines of Code: ${totalActiveLOC}
-- Est. AI-Assisted Code Percentage: ${repoAiPct.toFixed(1)}%
-- Total Source Files Scanned: ${files.length}
+    const prompt = `You are a senior code-forensics analyst. Judge ONLY from the source code shown below. You have NOT been given any prior estimate and there is no "correct" number to match — form your own independent assessment from the evidence.
 
-Here is the developer contribution profile metrics:
-${JSON.stringify(Object.entries(perDev).map(([name, d]) => ({
-  name,
-  activeLOC: d.activeLinesOwned,
-  aiLinesAdded: d.aiLinesAdded,
-  aiPercentage: d.aiPct
-})), null, 2)}
+Estimate how much of this codebase was likely written with AI assistance (Claude, Gemini/Antigravity, Copilot, etc.). Weigh stylistic evidence: uniformity of structure, comment patterns and dividers, boilerplate vs bespoke logic, naming consistency, scaffolding/generator artifacts — and weigh counter-evidence of human authorship: misspelled identifiers or filenames, inconsistent formatting/indentation, idiosyncratic hacks, debug leftovers, and copy-paste version drift.
 
-Below are source code snippets from 3 representative files in this repository:
-${fileContentsForLlm.map(f => `--- FILE: ${f.filename} ---\n${f.content}\n`).join('\n')}
+Repository: ${files.length} source files total; ${samples.length} sampled below (a representative spread).
 
-Based on the Git metrics and stylistic analysis of the code, perform a scan to:
-1. Estimate the AI-assisted code percentage for the repository overall (0-100).
-2. Rate the overall codebase quality score (0-100) based on maintainability and style.
-3. List primary AI style indicators found (e.g. comment dividers, JSDoc patterns, etc.).
-4. Provide a top recommendation / action item.
-5. Provide a short review summary.
-6. Provide an estimate of AI-written code percentage per developer.
+${samples.map((s) => `--- FILE: ${s.filename} ---\n${s.content}`).join('\n\n')}
 
-Return your response STRICTLY as a valid JSON object matching this schema exactly (do not output any markdown formatting, preambles, or postambles, only the JSON block):
+Return ONLY a valid JSON object (no markdown fences, no preamble, no postamble):
 {
-  "aiProbability": number,
-  "codeQualityScore": number,
-  "stylisticTells": ["tell1", "tell2"],
-  "recommendation": "top recommendation text",
-  "summary": "short review summary",
-  "devAiShare": [
-     { "name": "developer name", "aiPct": number }
-  ]
+  "aiProbability": <number 0-100: your independent estimate of % AI-assisted code>,
+  "confidence": "low" | "medium" | "high",
+  "codeQualityScore": <number 0-100>,
+  "stylisticTells": ["specific AI evidence you actually saw", "..."],
+  "humanTells": ["specific human-authorship evidence you actually saw", "..."],
+  "summary": "2-3 sentence independent assessment in your own words",
+  "recommendation": "one concrete recommendation"
 }`;
 
     llmAnalysis = {};
-    
+
     if (llmMode === 'claude' || llmMode === 'both') {
       try {
-        if (onLlmProgress) onLlmProgress("Contacting Claude 3.5 Sonnet API for semantic audit...");
+        if (onLlmProgress) onLlmProgress('Contacting Claude for an independent code audit...');
         llmAnalysis.claude = await callClaude(prompt, claudeKey);
-        if (onLlmProgress) onLlmProgress("Claude review completed successfully!");
+        if (onLlmProgress) onLlmProgress('Claude review completed successfully!');
       } catch (err) {
         console.error(err);
         llmAnalysis.claude = { error: err.message };
         if (onLlmProgress) onLlmProgress(`Claude scan failed: ${err.message}`);
       }
     }
-    
+
     if (llmMode === 'gemini' || llmMode === 'both') {
       try {
-        if (onLlmProgress) onLlmProgress("Contacting Google Gemini 1.5 API for stylometry check...");
+        if (onLlmProgress) onLlmProgress('Contacting Gemini for an independent code audit...');
         llmAnalysis.gemini = await callGemini(prompt, geminiKey);
-        if (onLlmProgress) onLlmProgress("Gemini review completed successfully!");
+        if (onLlmProgress) onLlmProgress('Gemini review completed successfully!');
       } catch (err) {
         console.error(err);
         llmAnalysis.gemini = { error: err.message };
@@ -406,6 +408,7 @@ Return your response STRICTLY as a valid JSON object matching this schema exactl
 }
 
 async function callClaude(prompt, apiKey) {
+  const model = process.env.CLAUDE_MODEL || 'claude-opus-4-8';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -414,7 +417,7 @@ async function callClaude(prompt, apiKey) {
       'anthropic-version': '2023-06-01'
     },
     body: JSON.stringify({
-      model: 'claude-3-5-sonnet-20240620',
+      model,
       max_tokens: 1024,
       messages: [{ role: 'user', content: prompt }]
     })
@@ -430,7 +433,8 @@ async function callClaude(prompt, apiKey) {
 }
 
 async function callGemini(prompt, apiKey) {
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+  const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

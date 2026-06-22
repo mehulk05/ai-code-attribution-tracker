@@ -41,7 +41,8 @@ export function buildJsonData(repoName, a) {
         preferredAgent: d.preferredAgent
       }))
       .sort((x, y) => y.activeLinesOwned - x.activeLinesOwned),
-    flaggedCommits: a.flaggedCommits
+    flaggedCommits: a.flaggedCommits,
+    llmAnalysis: a.llmAnalysis || null
   };
 }
 
@@ -65,14 +66,14 @@ export function buildHtml(repoName, a) {
     // Heuristic Card (Always present)
     cardsHtml += `
       <div class="compare-card highlight-cyan">
-        <h3>🔬 Heuristic Blame Scanner</h3>
+        <h3>🔬 My Analysis (Heuristic)</h3>
         <div class="comp-metric">
           <div class="comp-label">Estimated AI-Assisted Code %</div>
           <div class="comp-val">${aiPercentage}%</div>
         </div>
         <div class="comp-metric">
           <div class="comp-label">Basis / Methodology</div>
-          <div class="comp-val" style="font-size: 13px; font-weight: normal; color: var(--muted); line-height: 1.4;">Git history metadata, commit line spikes, and static signature checks.</div>
+          <div class="comp-val" style="font-size: 13px; font-weight: normal; color: var(--muted); line-height: 1.4;">Git blame line-ownership + commit-velocity rule + static signature checks. Tends to over-count (new files, squashes).</div>
         </div>
         <div class="comp-metric">
           <div class="comp-label">Style Indicators Found</div>
@@ -87,44 +88,40 @@ export function buildHtml(repoName, a) {
     
     if (hasClaude) {
       const c = a.llmAnalysis.claude;
-      const devShares = (c.devAiShare || []).map(d => `
-        <div class="comp-dev-row">
-          <span>${esc(d.name)}</span>
-          <span class="val">${d.aiPct}%</span>
-        </div>
-      `).join('');
       cardsHtml += `
         <div class="compare-card highlight-violet">
-          <h3>🤖 Claude 3.5 Sonnet</h3>
+          <h3>🤖 Claude — independent read</h3>
           <div class="comp-metric">
             <div class="comp-label">Estimated AI Code %</div>
-            <div class="comp-val">${c.aiProbability}%</div>
+            <div class="comp-val">${c.aiProbability}% <span style="font-size:12px;color:var(--muted);font-weight:normal;">(${esc(c.confidence || '—')} confidence)</span></div>
           </div>
           <div class="comp-metric">
             <div class="comp-label">Code Quality Score</div>
             <div class="comp-val">${c.codeQualityScore}/100</div>
           </div>
           <div class="comp-metric">
-            <div class="comp-label">AI Style Tells (Claude)</div>
+            <div class="comp-label">AI style tells it saw</div>
             <ul class="comp-list">
-              ${(c.stylisticTells || []).map(t => `<li>${esc(t)}</li>`).join('')}
+              ${(c.stylisticTells || []).map(t => `<li>${esc(t)}</li>`).join('') || '<li style="color:var(--faint)">none noted</li>'}
             </ul>
           </div>
           <div class="comp-metric">
-            <div class="comp-label">Per Developer AI % (Claude Estimate)</div>
-            <div class="comp-dev-shares">${devShares || '<div class="comp-dev-row" style="color:var(--faint)">N/A</div>'}</div>
+            <div class="comp-label">Human tells it saw</div>
+            <ul class="comp-list">
+              ${(c.humanTells || []).map(t => `<li>${esc(t)}</li>`).join('') || '<li style="color:var(--faint)">none noted</li>'}
+            </ul>
           </div>
           <details class="comp-details">
-            <summary>View Review Summary</summary>
-            <p><strong>Recommendation:</strong> ${esc(c.recommendation)}</p>
-            <p><strong>Summary:</strong> ${esc(c.summary)}</p>
+            <summary>View review summary</summary>
+            <p><strong>Summary:</strong> ${esc(c.summary || '')}</p>
+            <p><strong>Recommendation:</strong> ${esc(c.recommendation || '')}</p>
           </details>
         </div>
       `;
     } else if (a.llmAnalysis.claude && a.llmAnalysis.claude.error) {
       cardsHtml += `
         <div class="compare-card highlight-violet">
-          <h3>🤖 Claude 3.5 Sonnet</h3>
+          <h3>🤖 Claude — independent read</h3>
           <div class="comp-metric" style="color:#fca5a5; font-size:12.5px;">
             <strong>Claude scan failed:</strong><br>${esc(a.llmAnalysis.claude.error)}
           </div>
@@ -134,44 +131,40 @@ export function buildHtml(repoName, a) {
     
     if (hasGemini) {
       const g = a.llmAnalysis.gemini;
-      const devShares = (g.devAiShare || []).map(d => `
-        <div class="comp-dev-row">
-          <span>${esc(d.name)}</span>
-          <span class="val">${d.aiPct}%</span>
-        </div>
-      `).join('');
       cardsHtml += `
         <div class="compare-card highlight-green">
-          <h3>♊ Google Gemini 1.5</h3>
+          <h3>♊ Gemini — independent read</h3>
           <div class="comp-metric">
             <div class="comp-label">Estimated AI Code %</div>
-            <div class="comp-val">${g.aiProbability}%</div>
+            <div class="comp-val">${g.aiProbability}% <span style="font-size:12px;color:var(--muted);font-weight:normal;">(${esc(g.confidence || '—')} confidence)</span></div>
           </div>
           <div class="comp-metric">
             <div class="comp-label">Code Quality Score</div>
             <div class="comp-val">${g.codeQualityScore}/100</div>
           </div>
           <div class="comp-metric">
-            <div class="comp-label">AI Style Tells (Gemini)</div>
+            <div class="comp-label">AI style tells it saw</div>
             <ul class="comp-list">
-              ${(g.stylisticTells || []).map(t => `<li>${esc(t)}</li>`).join('')}
+              ${(g.stylisticTells || []).map(t => `<li>${esc(t)}</li>`).join('') || '<li style="color:var(--faint)">none noted</li>'}
             </ul>
           </div>
           <div class="comp-metric">
-            <div class="comp-label">Per Developer AI % (Gemini Estimate)</div>
-            <div class="comp-dev-shares">${devShares || '<div class="comp-dev-row" style="color:var(--faint)">N/A</div>'}</div>
+            <div class="comp-label">Human tells it saw</div>
+            <ul class="comp-list">
+              ${(g.humanTells || []).map(t => `<li>${esc(t)}</li>`).join('') || '<li style="color:var(--faint)">none noted</li>'}
+            </ul>
           </div>
           <details class="comp-details">
-            <summary>View Review Summary</summary>
-            <p><strong>Recommendation:</strong> ${esc(g.recommendation)}</p>
-            <p><strong>Summary:</strong> ${esc(g.summary)}</p>
+            <summary>View review summary</summary>
+            <p><strong>Summary:</strong> ${esc(g.summary || '')}</p>
+            <p><strong>Recommendation:</strong> ${esc(g.recommendation || '')}</p>
           </details>
         </div>
       `;
     } else if (a.llmAnalysis.gemini && a.llmAnalysis.gemini.error) {
       cardsHtml += `
         <div class="compare-card highlight-green">
-          <h3>♊ Google Gemini 1.5</h3>
+          <h3>♊ Gemini — independent read</h3>
           <div class="comp-metric" style="color:#fca5a5; font-size:12.5px;">
             <strong>Gemini scan failed:</strong><br>${esc(a.llmAnalysis.gemini.error)}
           </div>
@@ -181,7 +174,8 @@ export function buildHtml(repoName, a) {
     
     llmComparisonHtml = `
       <div class="panel-box" style="margin-top:24px;">
-        <h2>Forensic Heuristics vs. LLM Code Scan Comparison</h2>
+        <h2>Repository AI % — Three Independent Estimates</h2>
+        <p style="color:var(--muted); font-size:13px; margin:-8px 0 16px;">My heuristic, Claude, and Gemini each estimate separately. <strong>The two AI models are given only source code — never my number</strong> — so any agreement is genuine, and disagreement is informative. Per-developer AI % (below) comes only from blame attribution; the models don't see who wrote what.</p>
         <div class="compare-grid">
           ${cardsHtml}
         </div>
@@ -263,8 +257,6 @@ export function buildHtml(repoName, a) {
   const chartAiLines = JSON.stringify(topDevsForCharts.map(([, d]) => d.aiLinesAdded));
   const chartManualLines = JSON.stringify(topDevsForCharts.map(([, d]) => Math.max(0, d.linesAdded - d.aiLinesAdded)));
 
-  const aiPercentage = f1(a.repoAiPct);
-
   // AI Agent Breakdown values
   const breakdown = a.aiAgentBreakdown || { claude: 60, antigravity: 40, mixed: 0 };
   const claudePct = breakdown.claude;
@@ -280,35 +272,36 @@ export function buildHtml(repoName, a) {
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- ChartJS CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    :root {
-      --bg: #090a0f;
-      --panel: #11141d;
-      --panel-light: #161a26;
-      --line: rgba(255, 255, 255, 0.07);
-      --ink: #f1f5f9;
-      --muted: #8e9bb0;
-      --faint: #5a667a;
+    :host, .wrap {
+      --bg: #000;
+      --panel: #0a0a0a;
+      --panel-light: #111;
+      --line: rgba(255, 255, 255, 0.1);
+      --ink: #ededed;
+      --muted: #a1a1aa;
+      --faint: #71717a;
       
-      --neon-cyan: #0df;
-      --neon-violet: #a855f7;
-      --neon-green: #22c55e;
+      --neon-cyan: #fff;
+      --neon-violet: #fff;
+      --neon-green: #fff;
       
-      --shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+      --shadow: none;
     }
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
     body {
-      background: var(--bg);
+      background: #000;
       color: var(--ink);
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
+      overflow-x: hidden;
       padding: 30px 20px;
     }
 
@@ -324,9 +317,10 @@ export function buildHtml(repoName, a) {
       margin-bottom: 24px;
     }
     header h1 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 26px;
-      font-weight: 800;
+      font-family: 'Inter', sans-serif;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
       color: #fff;
     }
     header .meta {
@@ -359,25 +353,23 @@ export function buildHtml(repoName, a) {
     }
     
     .m-card {
-      background: var(--panel);
+      background: #000;
       border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 20px;
+      border-radius: 8px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       min-height: 165px;
-      box-shadow: var(--shadow);
+      transition: border-color 0.2s;
     }
     
-    .m-card.cyan-glow {
-      border-color: rgba(0, 221, 255, 0.35);
-      box-shadow: 0 0 20px rgba(0, 221, 255, 0.04), var(--shadow);
+    .m-card:hover {
+      border-color: rgba(255, 255, 255, 0.2);
     }
-    .m-card.violet-glow {
-      border-color: rgba(168, 85, 247, 0.35);
-      box-shadow: 0 0 20px rgba(168, 85, 247, 0.04), var(--shadow);
-    }
+    
+    .m-card.cyan-glow { }
+    .m-card.violet-glow { }
     
     /* Layout using flex side-by-side to guarantee zero overlapping */
     .m-card .c-top {
@@ -389,19 +381,18 @@ export function buildHtml(repoName, a) {
     }
     
     .m-card .title {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
+      font-size: 13px;
       color: var(--muted);
-      font-weight: 700;
+      font-weight: 500;
     }
     
     .m-card .value {
-      font-family: 'Outfit', sans-serif;
       font-size: 32px;
-      font-weight: 700;
+      font-weight: 600;
+      letter-spacing: -0.5px;
       margin-top: 6px;
       white-space: nowrap;
+      color: #fff;
     }
     .m-card.cyan-glow .value { color: var(--neon-cyan); }
     .m-card.violet-glow .value { color: var(--neon-violet); }
@@ -443,15 +434,14 @@ export function buildHtml(repoName, a) {
     }
     .circle-bg {
       fill: none;
-      stroke: rgba(255, 255, 255, 0.04);
+      stroke: rgba(255, 255, 255, 0.1);
       stroke-width: 3.2;
     }
     .circle {
       fill: none;
       stroke-width: 3.2;
       stroke-linecap: round;
-      stroke: var(--neon-cyan);
-      filter: drop-shadow(0 0 4px rgba(0, 221, 255, 0.6));
+      stroke: #fff;
     }
     .ring-text {
       position: absolute;
@@ -472,12 +462,11 @@ export function buildHtml(repoName, a) {
     }
     .mini-bar {
       flex: 1;
-      background: rgba(168, 85, 247, 0.2);
+      background: #222;
       border-radius: 2px;
     }
     .mini-bar.highlight {
-      background: var(--neon-violet);
-      filter: drop-shadow(0 0 3px rgba(168, 85, 247, 0.6));
+      background: #fff;
     }
     
     /* Card 3 sparkline wave */
@@ -500,20 +489,16 @@ export function buildHtml(repoName, a) {
       .charts-grid { grid-template-columns: 1fr; }
     }
     .chart-card {
-      background: var(--panel);
+      background: #000;
       border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: var(--shadow);
+      border-radius: 8px;
+      padding: 24px;
     }
     .chart-card h3 {
-      font-family: 'Outfit', sans-serif;
       font-size: 14px;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 15px;
-      color: var(--muted);
+      margin-bottom: 16px;
+      color: #fff;
     }
     .chart-container {
       position: relative;
@@ -523,24 +508,18 @@ export function buildHtml(repoName, a) {
 
     /* Main Table Panel Box */
     .panel-box {
-      background: var(--panel);
+      background: #000;
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-radius: 8px;
       padding: 24px;
-      box-shadow: var(--shadow);
       margin-bottom: 24px;
     }
     
     .panel-box h2 {
-      font-family: 'Outfit', sans-serif;
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
+      font-size: 16px;
       color: #fff;
       margin-bottom: 20px;
-      font-weight: 700;
-      border-left: 4px solid var(--neon-cyan);
-      padding-left: 10px;
+      font-weight: 600;
     }
     
     /* Executive Summary styled layouts */
@@ -684,9 +663,9 @@ export function buildHtml(repoName, a) {
       height: 100%;
       border-radius: 10px;
     }
-    .active-bar-fill.mk { background: var(--neon-cyan); box-shadow: 0 0 8px rgba(0, 221, 255, 0.5); }
-    .active-bar-fill.ss { background: linear-gradient(90deg, var(--neon-cyan), var(--neon-violet)); box-shadow: 0 0 8px rgba(168, 85, 247, 0.5); }
-    .active-bar-fill.hv { background: var(--neon-violet); }
+    .active-bar-fill.mk { background: #fff; }
+    .active-bar-fill.ss { background: #ccc; }
+    .active-bar-fill.hv { background: #999; }
     
     .pct-label {
       font-size: 12px;
@@ -738,11 +717,10 @@ export function buildHtml(repoName, a) {
     }
     
     .compare-card {
-      background: var(--panel);
+      background: #000;
       border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: var(--shadow);
+      border-radius: 8px;
+      padding: 24px;
       position: relative;
     }
     .compare-card.highlight-cyan { border-color: rgba(0, 221, 255, 0.25); }
@@ -750,11 +728,9 @@ export function buildHtml(repoName, a) {
     .compare-card.highlight-green { border-color: rgba(34, 197, 94, 0.25); }
     
     .compare-card h3 {
-      font-family: 'Outfit', sans-serif;
       font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 15px;
+      font-weight: 600;
+      margin-bottom: 16px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -778,9 +754,8 @@ export function buildHtml(repoName, a) {
       font-weight: 600;
     }
     .comp-val {
-      font-family: 'Outfit', sans-serif;
       font-size: 18px;
-      font-weight: 700;
+      font-weight: 600;
       color: #fff;
     }
     .comp-list {
@@ -935,22 +910,6 @@ export function buildHtml(repoName, a) {
       
     </div>
 
-    <!-- CHARTS PANEL GRID -->
-    <div class="charts-grid">
-      <div class="chart-card">
-        <h3>Active LOC Distribution (Top 10 Devs)</h3>
-        <div class="chart-container">
-          <canvas id="activeLocChart"></canvas>
-        </div>
-      </div>
-      <div class="chart-card">
-        <h3>AI vs. Manual Lines Added (Top 10 Devs)</h3>
-        <div class="chart-container">
-          <canvas id="aiVsManualChart"></canvas>
-        </div>
-      </div>
-    </div>
-
     <!-- MAIN TABLE (Developer stats on top) -->
     <div class="panel-box">
       <h2>Developer Contribution &amp; AI Usage</h2>
@@ -969,6 +928,22 @@ export function buildHtml(repoName, a) {
           ${devRows}
         </tbody>
       </table>
+    </div>
+
+    <!-- CHARTS PANEL GRID -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Active LOC Distribution (Top 10 Devs)</h3>
+        <div class="chart-container">
+          <canvas id="activeLocChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>AI vs. Manual Lines Added (Top 10 Devs)</h3>
+        <div class="chart-container">
+          <canvas id="aiVsManualChart"></canvas>
+        </div>
+      </div>
     </div>
 
     <!-- EXECUTIVE SUMMARY & FINDINGS SECTION -->
@@ -1072,7 +1047,8 @@ export function buildHtml(repoName, a) {
 
   <script>
     // active LOC Distribution (Doughnut Chart)
-    const activeCtx = document.getElementById('activeLocChart').getContext('2d');
+    const getEl = id => document.getElementById(id) || (document.getElementById('frame') && document.getElementById('frame').shadowRoot.getElementById(id));
+    const activeCtx = getEl('activeLocChart').getContext('2d');
     new Chart(activeCtx, {
       type: 'doughnut',
       data: {
@@ -1080,8 +1056,8 @@ export function buildHtml(repoName, a) {
         datasets: [{
           data: ${chartActiveLoc},
           backgroundColor: [
-            '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', 
-            '#6366f1', '#14b8a6', '#f43f5e', '#a78bfa', '#64748b'
+            '#ffffff', '#e4e4e7', '#a1a1aa', '#71717a', '#52525b', 
+            '#3f3f46', '#27272a', '#18181b', '#111111', '#000000'
           ],
           borderWidth: 0
         }]
@@ -1099,7 +1075,7 @@ export function buildHtml(repoName, a) {
     });
 
     // AI vs Manual Lines Added (Stacked Bar Chart)
-    const aiCtx = document.getElementById('aiVsManualChart').getContext('2d');
+    const aiCtx = getEl('aiVsManualChart').getContext('2d');
     new Chart(aiCtx, {
       type: 'bar',
       data: {
@@ -1108,12 +1084,14 @@ export function buildHtml(repoName, a) {
           {
             label: 'AI Lines Added',
             data: ${chartAiLines},
-            backgroundColor: '#06b6d4'
+            backgroundColor: '#ffffff',
+            maxBarThickness: 40
           },
           {
             label: 'Manual Lines Added',
             data: ${chartManualLines},
-            backgroundColor: '#8b5cf6'
+            backgroundColor: '#3f3f46',
+            maxBarThickness: 40
           }
         ]
       },

@@ -4,6 +4,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cloneRepo, analyze } from './scanner.js';
 import { buildHtml, buildJsonData } from './report.js';
+import { analyze as analyzeTeamPulse } from './teampulse.js';
+import { buildTeamPulseHtml } from './teampulse-report.js';
+import { buildBlameCache } from './blame-shared.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -41,7 +44,8 @@ async function handleScan(req, res) {
   let opts;
   try { opts = JSON.parse(raw || '{}'); } catch { return send(res, 400, { error: 'invalid JSON' }); }
 
-  const { repo, branch, name, localPath, auth = {}, llmMode = 'skip', claudeKey = '', geminiKey = '' } = opts;
+  const { repo, branch, name, localPath, auth = {}, llmMode = 'skip', claudeKey = '', geminiKey = '',
+    windowDays = 30, since, until } = opts;
   if (!repo && !localPath) return send(res, 400, { error: 'Provide a repo URL or a localPath.' });
 
   // Credentials from the request override the server's env (request is transient, never stored).
@@ -82,11 +86,21 @@ async function handleScan(req, res) {
     }
 
     sendProgress({ step: 'listing', message: 'Analyzing file tree on master...' });
-    
+
+    // ONE shared git-blame pass, reused by both the AI scan and Team Pulse.
+    sendProgress({ step: 'blaming', message: 'Single blame pass (shared by AI scan + Team Pulse)…' });
+    const { cache: blameCache } = await buildBlameCache(repoDir, {
+      branch, windowDays, since, until,
+      onProgress: (file, idx, total) => sendProgress({ step: 'blaming', file: path.basename(file), current: idx, total }),
+    });
+
     const a = await analyze(repoDir, {
+      branch,
       llmMode,
       claudeKey,
       geminiKey,
+      blameCache,
+      windowDays, since, until,
       onProgress: (file, idx, total) => {
         sendProgress({ step: 'blaming', file: path.basename(file), current: idx, total });
       },
@@ -98,14 +112,30 @@ async function handleScan(req, res) {
     sendProgress({ step: 'commits', message: 'Processing historical commits for AI heuristic checks...' });
 
     const finalData = buildJsonData(repoName, a);
-    
+
+    // Same scan → also compute 30-day Team Pulse (git stats) on the same clone.
+    let teamHtml = '';
+    try {
+      sendProgress({ step: 'commits', message: 'Computing 30-day team stats (contribution & hygiene)…' });
+      const tp = await analyzeTeamPulse(repoDir, {
+        branch, windowDays, since, until,
+        blameCache,
+        repoName,
+        onProgress: (m) => sendProgress({ step: 'commits', message: m }),
+      });
+      teamHtml = buildTeamPulseHtml(repoName, tp);
+    } catch (e) {
+      sendProgress({ step: 'commits', message: 'Team Pulse skipped: ' + e.message });
+    }
+
     res.write(JSON.stringify({
       type: 'complete',
       ok: true,
       repo: repoName,
       summary: finalData.summary,
       perDeveloper: finalData.perDeveloper,
-      html: buildHtml(repoName, a)
+      html: buildHtml(repoName, a),
+      teamHtml
     }) + '\n');
     res.end();
   } catch (e) {
@@ -114,12 +144,47 @@ async function handleScan(req, res) {
   }
 }
 
+async function handleTeamPulse(req, res) {
+  const raw = await readBody(req);
+  let opts;
+  try { opts = JSON.parse(raw || '{}'); } catch { return send(res, 400, { error: 'invalid JSON' }); }
+  const { repo, branch, name, localPath, auth = {}, windowDays = 30 } = opts;
+  if (!repo && !localPath) return send(res, 400, { error: 'Provide a repo URL or a localPath.' });
+
+  const env = { ...process.env };
+  if (auth.token) env.BITBUCKET_TOKEN = auth.token;
+  if (auth.username) env.BITBUCKET_USERNAME = auth.username;
+  if (auth.appPassword) env.BITBUCKET_APP_PASSWORD = auth.appPassword;
+  if (auth.email) env.BITBUCKET_EMAIL = auth.email;
+  if (auth.apiToken) env.BITBUCKET_API_TOKEN = auth.apiToken;
+
+  try {
+    let repoDir, repoName;
+    if (localPath) {
+      if (!existsSync(localPath)) return send(res, 400, { error: 'localPath does not exist on the server.' });
+      repoDir = path.resolve(localPath);
+      repoName = name || path.basename(repoDir);
+    } else {
+      repoName = name || (repo.split('/').pop() || 'repo').replace(/\.git$/, '');
+      repoDir = await cloneRepo(repo, env, path.join(ROOT, 'work'), branch);
+    }
+    const data = await analyzeTeamPulse(repoDir, { windowDays: Number(windowDays) || 30, repoUrl: repo });
+    return send(res, 200, { ok: true, repo: repoName, html: buildTeamPulseHtml(repoName, data) });
+  } catch (e) {
+    return send(res, 500, { error: e.message });
+  }
+}
+
 const server = createServer(async (req, res) => {
   try {
     if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
       return send(res, 200, readFileSync(path.join(ROOT, 'public', 'index.html'), 'utf8'), 'text/html');
     }
+    if (req.method === 'GET' && (req.url === '/teampulse' || req.url === '/teampulse.html')) {
+      return send(res, 200, readFileSync(path.join(ROOT, 'public', 'teampulse.html'), 'utf8'), 'text/html');
+    }
     if (req.method === 'POST' && req.url === '/api/scan') return await handleScan(req, res);
+    if (req.method === 'POST' && req.url === '/api/teampulse') return await handleTeamPulse(req, res);
     if (req.method === 'GET' && req.url === '/health') return send(res, 200, { ok: true });
     send(res, 404, { error: 'not found' });
   } catch (e) {

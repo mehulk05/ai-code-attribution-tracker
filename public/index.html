@@ -8,27 +8,29 @@
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
   :root {
-    --bg: #06070d;
-    --panel: rgba(13, 17, 30, 0.7);
-    --panel-hover: rgba(18, 24, 43, 0.9);
-    --panel-light: rgba(255, 255, 255, 0.02);
-    --line: rgba(255, 255, 255, 0.06);
-    --line-focus: rgba(0, 242, 254, 0.4);
-    --ink: #f8fafc;
-    --muted: #cbd5e1; /* brighter, high-contrast text color */
-    --faint: #94a3b8; /* readable muted text color */
+    --bg: #000;
+    --panel: #0a0a0a;
+    --panel-hover: #111;
+    --panel-light: rgba(255, 255, 255, 0.05);
+    --line: rgba(255, 255, 255, 0.1);
+    --line-focus: #fff;
+    --ink: #ededed;
+    --muted: #a1a1aa;
+    --faint: #71717a;
     
-    --neon-cyan: #00f2fe;
-    --neon-violet: #7f00ff;
-    --neon-green: #10b981;
-    --neon-yellow: #f59e0b;
-    --primary-gradient: linear-gradient(135deg, #7f00ff 0%, #00f2fe 100%);
-    --shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --neon-cyan: #fff;
+    --neon-violet: #fff;
+    --neon-green: #fff;
+    --neon-yellow: #fff;
+    --primary-gradient: #fff;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --transition: all 0.2s ease;
   }
   
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,70 +38,42 @@
   body {
     background: var(--bg);
     color: var(--ink);
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.5;
     min-height: 100vh;
     overflow-x: hidden;
   }
   
-  /* Ambient glowing neon spots */
-  .glow-1 {
-    position: fixed;
-    top: -200px;
-    left: -200px;
-    width: 700px;
-    height: 700px;
-    background: radial-gradient(circle, rgba(127, 0, 255, 0.12) 0%, rgba(0,0,0,0) 70%);
-    pointer-events: none;
-    z-index: -1;
-  }
-  
-  .glow-2 {
-    position: fixed;
-    bottom: -200px;
-    right: -200px;
-    width: 700px;
-    height: 700px;
-    background: radial-gradient(circle, rgba(0, 242, 254, 0.12) 0%, rgba(0,0,0,0) 70%);
-    pointer-events: none;
-    z-index: -1;
-  }
+  /* Ambient glowing neon spots (Removed for Vercel look) */
+  .glow-1, .glow-2 { display: none; }
 
-  .wrap { max-width: 1550px; margin: 0 auto; padding: 40px 24px 80px; }
+  .wrap { max-width: 1550px; margin: 0 auto; padding: 48px 32px 80px; }
   
   /* Modern premium logo/header section */
   .header-area {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 35px;
-    border-bottom: 1px solid var(--line);
-    padding-bottom: 24px;
+    margin-bottom: 40px;
   }
-  .branding { display: flex; align-items: center; gap: 14px; }
+  .branding { display: flex; align-items: center; gap: 16px; }
   .logo-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: var(--primary-gradient);
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
-    font-weight: 800;
-    color: #fff;
-    box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+    color: #000;
   }
   h1 {
-    font-family: 'Outfit', sans-serif;
     font-size: 24px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    background: linear-gradient(135deg, #ffffff 30%, #c084fc 70%, #00f2fe 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: #fff;
   }
-  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .sub { color: var(--muted); font-size: 14px; margin-top: 2px; }
   
   .layout { display: grid; grid-template-columns: 380px 1fr; gap: 28px; align-items: start; }
   @media(max-width: 1024px) { .layout { grid-template-columns: 1fr; } }
@@ -110,103 +84,85 @@
   .panel {
     background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: 20px;
-    padding: 28px;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(18px);
+    border-radius: 8px;
+    padding: 24px;
     transition: var(--transition);
   }
   .panel:hover {
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
   }
   
   /* Mode Selector Switch */
   .mode-selector {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    background: rgba(0, 0, 0, 0.25);
+    gap: 4px;
+    background: #111;
     padding: 4px;
-    border-radius: 10px;
+    border-radius: 8px;
     border: 1px solid var(--line);
-    margin-bottom: 20px;
+    margin-bottom: 24px;
   }
   .mode-btn {
     border: none;
     background: transparent;
-    color: var(--muted);
-    font-family: 'Outfit', sans-serif;
-    font-size: 12px;
-    font-weight: 600;
+    color: var(--faint);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
     padding: 8px;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: var(--transition);
   }
   .mode-btn.active {
-    background: var(--primary-gradient);
+    background: #222;
     color: #fff;
-    box-shadow: 0 4px 12px rgba(127, 0, 255, 0.25);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.5);
   }
   
   /* Steps styling inside form */
   .form-section-title {
-    font-family: 'Outfit', sans-serif;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--neon-cyan);
-    margin: 22px 0 12px;
-    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    margin: 24px 0 16px;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 8px;
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
   }
-  .form-section-title:first-of-type { margin-top: 0; }
-  .form-section-title span {
-    display: inline-flex;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: rgba(0, 242, 254, 0.15);
-    font-size: 10px;
-    align-items: center;
-    justify-content: center;
-    color: var(--neon-cyan);
-    border: 1px solid rgba(0, 242, 254, 0.3);
+  .form-section-title:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+  .form-section-title i[data-lucide] {
+    width: 16px; height: 16px; color: var(--muted);
   }
   
   label {
     display: block;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--muted);
-    margin: 12px 0 6px;
-    font-weight: 600;
+    font-size: 13px;
+    color: var(--ink);
+    margin: 16px 0 8px;
+    font-weight: 500;
   }
   
   /* Inputs wrapper */
-  .input-wrapper {
-    position: relative;
-    width: 100%;
-  }
+  .input-wrapper { position: relative; width: 100%; }
   input, select {
     width: 100%;
-    background: rgba(10, 14, 26, 0.6);
+    background: #000;
     border: 1px solid var(--line);
-    border-radius: 12px;
+    border-radius: 6px;
     color: var(--ink);
-    padding: 12px 14px;
-    font-size: 13.5px;
+    padding: 10px 12px;
+    font-size: 14px;
     font-family: inherit;
-    transition: var(--transition);
+    transition: border-color 0.15s ease;
   }
   input:focus, select:focus {
     outline: none;
-    border-color: var(--line-focus);
-    box-shadow: 0 0 15px rgba(0, 242, 254, 0.12);
-    background: rgba(10, 14, 26, 0.85);
+    border-color: #fff;
+    background: #000;
   }
   
   .hint { font-size: 11.5px; color: var(--faint); margin-top: 5px; }
@@ -231,39 +187,28 @@
     display: block;
   }
   
-  /* Action Button with animated gradient */
+  /* Action Button */
   button[type="submit"] {
-    margin-top: 28px;
+    margin-top: 32px;
     width: 100%;
-    background: var(--primary-gradient);
-    background-size: 200% 200%;
-    border: none;
-    color: #fff;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: 0.5px;
-    padding: 14px;
-    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #fff;
+    color: #000;
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 6px;
     cursor: pointer;
     transition: var(--transition);
-    box-shadow: 0 5px 20px rgba(127, 0, 255, 0.3);
-    animation: gradientShift 6s ease infinite;
-  }
-  
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
   }
   
   button[type="submit"]:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 242, 254, 0.4);
-    filter: brightness(1.15);
+    background: #ebebeb;
+    border-color: #ebebeb;
   }
   button[type="submit"]:active:not(:disabled) {
-    transform: translateY(0);
+    transform: translateY(1px);
   }
   button:disabled { opacity: 0.55; cursor: not-allowed; }
   
@@ -353,89 +298,60 @@
   
   /* Glass card design matching the report */
   .card {
-    background: var(--panel);
+    background: #000;
     border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 18px 20px;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(12px);
-    position: relative;
-    overflow: hidden;
+    border-radius: 8px;
+    padding: 24px;
   }
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 3px;
-    height: 100%;
-    background: var(--neon-cyan);
-  }
-  .card:nth-child(2)::before { background: var(--neon-violet); }
-  .card:nth-child(3)::before { background: var(--neon-green); }
-  .card:nth-child(4)::before { background: var(--neon-yellow); }
-  
-  .card .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-  .card .v { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 700; margin-top: 6px; }
+  .card .k { font-size: 13px; color: var(--muted); font-weight: 500; margin-bottom: 8px; display:flex; align-items:center; gap:8px;}
+  .card .k i[data-lucide] { width: 16px; height: 16px; color: #fff; }
+  .card .v { font-size: 32px; font-weight: 600; color: #fff !important; letter-spacing: -0.5px; }
   
   /* Toolbar at TOP of Results Panel */
   .toolbar {
     display: flex;
     gap: 12px;
     align-items: center;
-    background: rgba(255, 255, 255, 0.01);
-    border: 1px solid var(--line);
-    padding: 12px 18px;
-    border-radius: 14px;
-    backdrop-filter: blur(8px);
-    margin-bottom: 8px;
+    margin-bottom: 24px;
   }
-  .toolbar .grow { flex: 1; color: var(--muted); font-size: 13.5px; font-weight: 600; }
+  .toolbar .grow { flex: 1; color: var(--muted); font-size: 14px; font-weight: 500; }
   
   .btn-sm {
     width: auto;
     margin: 0;
-    padding: 10px 20px;
+    padding: 8px 14px;
     font-size: 13px;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 700;
-    border-radius: 10px;
+    font-weight: 500;
+    background: #0a0a0a;
+    border: 1px solid var(--line);
+    color: #fff;
+    border-radius: 6px;
     cursor: pointer;
     transition: var(--transition);
     display: inline-flex;
     align-items: center;
     gap: 6px;
   }
-  #download {
-    background: linear-gradient(135deg, #7f00ff, #5b21b6);
-    border: 1px solid rgba(127, 0, 255, 0.4);
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(127, 0, 255, 0.3);
-  }
-  #download:hover {
-    background: linear-gradient(135deg, #9063ff, #7f00ff);
-    box-shadow: 0 6px 20px rgba(127, 0, 255, 0.45);
-    transform: translateY(-1px);
-  }
-  #openTab {
-    background: linear-gradient(135deg, #00f2fe, #0099ff);
-    border: 1px solid rgba(0, 242, 254, 0.4);
-    color: #05070c;
-    box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
-  }
-  #openTab:hover {
-    background: linear-gradient(135deg, #33f5ff, #00f2fe);
-    box-shadow: 0 6px 20px rgba(0, 242, 254, 0.4);
-    transform: translateY(-1px);
+  .btn-sm:hover {
+    background: #1a1a1a;
+    border-color: #333;
   }
   
-  iframe {
-    width: 100%;
-    height: 850px;
-    border: 1px solid var(--line);
-    border-radius: 20px;
-    background: transparent;
-    box-shadow: var(--shadow);
+  /* Tabs */
+  #viewTabs { display: flex; gap: 2px; margin-bottom: 24px; border-bottom: 1px solid var(--line); padding-bottom: 0px; }
+  .vtab {
+    background: transparent !important;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    color: var(--faint) !important;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  .vtab:hover { background: transparent; color: var(--muted) !important; border-bottom-color: var(--line); }
+  .vtab.active {
+    color: #fff !important;
+    border-bottom-color: #fff;
   }
   
   /* Advanced Spinner & Continuous Hologram Radar System */
@@ -892,60 +808,78 @@
 
   <div class="layout" id="layout-container">
     <!-- SCAN CONTROL CENTER FORM -->
-    <form class="panel" id="form">
+    <form class="panel" id="form" style="display: flex; flex-direction: column; gap: 24px;">
       
       <!-- SCAN MODE SWITCHER -->
-      <div class="mode-selector">
+      <div class="mode-selector" style="margin-bottom: 0;">
         <button type="button" class="mode-btn active" id="btn-remote" onclick="setMode('remote')">Git Remote</button>
         <button type="button" class="mode-btn" id="btn-local" onclick="setMode('local')">Local Folder Scan</button>
       </div>
       
       <!-- Section 1: Target -->
-      <div class="form-section-title"><span>1</span> Target Location</div>
-      
-      <!-- Remote Only Field -->
-      <div class="remote-only">
-        <label>Git Remote URL (GitHub/Bitbucket)</label>
-        <div class="input-wrapper">
-          <input id="repo" placeholder="https://github.com/user/repo.git" autocomplete="off">
+      <div>
+        <div class="form-section-title" style="margin-top: 0; padding-top: 0; border: none;"><span>1</span> Target Location</div>
+        
+        <!-- Remote Only Field -->
+        <div class="remote-only form-group">
+          <label style="margin-top:0">Git Remote URL (GitHub/Bitbucket)</label>
+          <div class="input-wrapper">
+            <input id="repo" placeholder="https://github.com/user/repo.git" autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Local Only Field -->
+        <div class="local-only form-group" style="display:none;">
+          <label style="margin-top:0">Local Folder Path</label>
+          <input id="localPath" placeholder="E:/work/ui/g99-ui-widget" autocomplete="off">
+          <div class="hint">Check standard files without remote network latency.</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+          <div class="form-group">
+            <label style="margin-top:0">Branch</label>
+            <input id="branch" placeholder="master/main" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label style="margin-top:0">Report Name</label>
+            <input id="name" placeholder="Auto-generated" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 16px;">
+          <label style="margin-top:0">Team Pulse Window</label>
+          <select id="windowSel" onchange="syncWindow()">
+            <option value="30" selected>Last 30 days</option>
+            <option value="60">Last 60 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="7">Last 7 days</option>
+            <option value="custom">Custom date range…</option>
+          </select>
+          <div id="customRange" style="display:none; gap:12px; margin-top:12px; grid-template-columns:1fr 1fr;">
+            <div><label style="margin-top:0">From</label><input id="sinceDate" type="date"></div>
+            <div><label style="margin-top:0">To</label><input id="untilDate" type="date"></div>
+          </div>
         </div>
       </div>
 
-      <!-- Local Only Field -->
-      <div class="local-only" style="display:none;">
-        <label>Local Folder Path</label>
-        <input id="localPath" placeholder="E:/work/ui/g99-ui-widget" autocomplete="off">
-        <div class="hint">Check standard files without remote network latency.</div>
-      </div>
-
-      <div class="form-group">
-        <label>Branch Name</label>
-        <input id="branch" placeholder="master (defaults if omitted)" autocomplete="off">
-      </div>
-
-      <div class="form-group">
-        <label>Report Display Name</label>
-        <input id="name" placeholder="Auto-generated from path/URL" autocomplete="off">
-      </div>
-
       <!-- Section 2: Authentication (Remote Only) -->
-      <div class="remote-only">
-        <div class="form-section-title"><span>2</span> Authentication</div>
+      <div class="remote-only" style="border-top: 1px solid var(--line); padding-top: 24px;">
+        <div class="form-section-title" style="margin-top: 0; padding-top: 0; border: none;"><span>2</span> Authentication</div>
         
         <div class="form-group">
-          <label>Auth Credentials</label>
+          <label style="margin-top:0">Auth Credentials</label>
           <select id="authMethod">
-            <option value="public" selected>Public Repository (No credentials needed)</option>
+            <option value="public" selected>Public Repository (No credentials)</option>
             <option value="server">Use server default (.env Token)</option>
-            <option value="token">Private Repository Access Token</option>
+            <option value="token">Private Access Token</option>
             <option value="app">App Password (Username + Pass)</option>
-            <option value="api">Atlassian account API Token</option>
+            <option value="api">Atlassian API Token</option>
           </select>
         </div>
 
         <div class="auth-fields" data-for="public">
-          <div class="hint" style="color: var(--neon-cyan); margin-top: 10px; font-weight: 600;">
-            ℹ️ No credentials needed. Public repositories (like GitHub/Bitbucket) will be cloned directly.
+          <div class="hint" style="color: var(--neon-cyan); margin-top: 5px; font-weight: 500;">
+            ℹ️ No credentials needed for public repos.
           </div>
         </div>
 
@@ -954,49 +888,53 @@
           <input id="token" type="password" placeholder="Paste access token" autocomplete="off">
         </div>
         <div class="auth-fields" data-for="app">
-          <label>Bitbucket Username</label>
-          <input id="username" placeholder="Username" autocomplete="off">
-          <label>App Password</label>
-          <input id="appPassword" type="password" placeholder="••••••••••••" autocomplete="off">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div><label style="margin-top:0">Username</label><input id="username" placeholder="Username" autocomplete="off"></div>
+            <div><label style="margin-top:0">App Password</label><input id="appPassword" type="password" placeholder="••••••••••••" autocomplete="off"></div>
+          </div>
         </div>
         <div class="auth-fields" data-for="api">
-          <label>Atlassian Email</label>
-          <input id="email" placeholder="email@company.com" autocomplete="off">
-          <label>API Token</label>
-          <input id="apiToken" type="password" placeholder="Paste API token" autocomplete="off">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div><label style="margin-top:0">Atlassian Email</label><input id="email" placeholder="email@company.com" autocomplete="off"></div>
+            <div><label style="margin-top:0">API Token</label><input id="apiToken" type="password" placeholder="Paste API token" autocomplete="off"></div>
+          </div>
         </div>
       </div>
 
       <!-- Section 3: Live LLM Code Audit (Optional) -->
-      <div class="form-section-title"><span>3</span> Live LLM Code Audit</div>
-      
-      <div class="form-group">
-        <label>AI Analysis Mode</label>
-        <select id="llmMode" onchange="syncLlmKeys()">
-          <option value="skip" selected>Skip AI Scanning (Heuristic Blame Only)</option>
-          <option value="claude">Claude 3.5 Sonnet Scan Only</option>
-          <option value="gemini">Google Gemini 1.5 Scan Only</option>
-          <option value="both">Compare Both (Claude + Gemini)</option>
-        </select>
+      <div style="border-top: 1px solid var(--line); padding-top: 24px;">
+        <div class="form-section-title" style="margin-top: 0; padding-top: 0; border: none;"><span>3</span> Live LLM Code Audit</div>
+        
+        <div class="form-group">
+          <label style="margin-top:0">AI Analysis Mode</label>
+          <select id="llmMode" onchange="syncLlmKeys()">
+            <option value="skip" selected>Skip AI Scanning (Heuristic Blame Only)</option>
+            <option value="claude">Claude 3.5 Sonnet Scan Only</option>
+            <option value="gemini">Google Gemini 1.5 Scan Only</option>
+            <option value="both">Compare Both (Claude + Gemini)</option>
+          </select>
+        </div>
+
+        <div id="claudeKeyGroup" style="display:none; margin-top: 16px;">
+          <label style="margin-top:0">Claude API Key</label>
+          <input id="claudeKey" type="password" placeholder="sk-ant-..." autocomplete="off">
+        </div>
+
+        <div id="geminiKeyGroup" style="display:none; margin-top: 16px;">
+          <label style="margin-top:0">Gemini API Key</label>
+          <input id="geminiKey" type="password" placeholder="AIzaSy..." autocomplete="off">
+        </div>
       </div>
 
-      <div id="claudeKeyGroup" style="display:none; margin-top: 12px;">
-        <label>Claude API Key</label>
-        <input id="claudeKey" type="password" placeholder="sk-ant-..." autocomplete="off">
-      </div>
-
-      <div id="geminiKeyGroup" style="display:none; margin-top: 12px;">
-        <label>Gemini API Key</label>
-        <input id="geminiKey" type="password" placeholder="AIzaSy..." autocomplete="off">
-      </div>
-
-      <button type="submit" id="go">Launch Heuristic Scan</button>
-      
-      <div class="security-badge">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <div>
-          <strong>Transient Scan Policy</strong><br>
-          Credentials are used dynamically to checkout repositories and are never cached or logged.
+      <div>
+        <button type="submit" id="go" style="margin-top: 8px;">Launch Forensic Scan</button>
+        
+        <div class="security-badge">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div>
+            <strong>Transient Scan Policy</strong><br>
+            Credentials are used dynamically and are never cached or logged.
+          </div>
         </div>
       </div>
     </form>
@@ -1071,8 +1009,12 @@
           <button class="btn-sm" id="openTab">↗ Open in tab</button>
         </div>
         
+        <div id="viewTabs" style="display:flex;gap:8px;margin-bottom:14px">
+          <button type="button" class="btn-sm vtab active" data-view="ai" style="background:var(--primary-gradient);color:#fff">🤖 AI Code Scan</button>
+          <button type="button" class="btn-sm vtab" data-view="team">📊 Team Pulse · 30d</button>
+        </div>
         <div class="cards" id="cards"></div>
-        <iframe id="frame" title="Report Results View"></iframe>
+        <div id="frame" style="width:100%; border:1px solid var(--line); border-radius:20px; background:transparent; box-shadow:var(--shadow); overflow:hidden; min-height:800px;"></div>
       </div>
     </div>
   </div>
@@ -1137,9 +1079,14 @@
     $('geminiKeyGroup').style.display = (mode === 'gemini' || mode === 'both') ? 'block' : 'none';
   }
 
+  function syncWindow() {
+    const custom = $('windowSel').value === 'custom';
+    $('customRange').style.display = custom ? 'grid' : 'none';
+  }
+
   let lastHtml = '';
-  function card(k, v, color) {
-    return `<div class="card"><div class="k">${k}</div><div class="v" style="color:${color||'var(--ink)'}">${v}</div></div>`;
+  function card(k, v, icon) {
+    return `<div class="card"><div class="k"><i data-lucide="${icon}"></i> ${k}</div><div class="v">${v}</div></div>`;
   }
 
   $('form').addEventListener('submit', async (e) => {
@@ -1173,15 +1120,20 @@
       else if (m === 'api') { auth.email = $('email').value.trim(); auth.apiToken = $('apiToken').value.trim(); }
     }
 
-    const body = { 
-      repo: scanMode === 'remote' ? repo : '', 
-      localPath: scanMode === 'local' ? localPath : '', 
-      branch: $('branch').value.trim(), 
-      name: $('name').value.trim(), 
+    const winSel = $('windowSel') ? $('windowSel').value : '30';
+    const custom = winSel === 'custom';
+    const body = {
+      repo: scanMode === 'remote' ? repo : '',
+      localPath: scanMode === 'local' ? localPath : '',
+      branch: $('branch').value.trim(),
+      name: $('name').value.trim(),
       auth,
       llmMode,
       claudeKey,
-      geminiKey
+      geminiKey,
+      windowDays: custom ? 30 : Number(winSel),
+      since: custom ? ($('sinceDate').value || undefined) : undefined,
+      until: custom ? ($('untilDate').value || undefined) : undefined
     };
 
     // Setup visual progress box
@@ -1380,15 +1332,65 @@
             
             // Render KPI cards at top
             $('cards').innerHTML =
-              card('AI-assisted code', (s.repoAiPct ?? 0) + '%', 'var(--neon-cyan)') +
-              card('Est. AI LOC Added', (s.totalAiLinesAdded || 0).toLocaleString(), 'var(--neon-violet)') +
-              card('Active LOC', (s.totalActiveLOC || 0).toLocaleString(), 'var(--neon-green)') +
-              card('Files Scanned', s.files || 0, 'var(--neon-yellow)');
+              card('AI-assisted code', (s.repoAiPct ?? 0) + '%', 'bot') +
+              card('Est. AI LOC Added', (s.totalAiLinesAdded || 0).toLocaleString(), 'code-2') +
+              card('Active LOC', (s.totalActiveLOC || 0).toLocaleString(), 'activity') +
+              card('Files Scanned', s.files || 0, 'files');
+              
+            lucide.createIcons();
             
             $('caption').innerHTML = `🔍 scanned: <strong>${esc(msg.repo)}</strong> — ${(s.repoAiPct ?? 0)}% AI ratio on master`;
+            window.__aiHtml = msg.html;
+            window.__teamHtml = msg.teamHtml || '';
             lastHtml = msg.html;
-            $('frame').srcdoc = msg.html;
-            
+            function renderToShadow(html) {
+              const container = $('frame');
+              if (!container.shadowRoot) container.attachShadow({ mode: 'open' });
+              const shadow = container.shadowRoot;
+              
+              const parser = new DOMParser();
+              const doc = parser.parseFromString(html, 'text/html');
+              
+              shadow.innerHTML = '';
+              doc.querySelectorAll('style, link[rel="stylesheet"]').forEach(el => shadow.appendChild(el.cloneNode(true)));
+              Array.from(doc.body.childNodes).forEach(node => shadow.appendChild(node.cloneNode(true)));
+              
+              doc.querySelectorAll('script').forEach(s => {
+                if (s.src) {
+                  if (!document.querySelector(`script[src="${s.src}"]`)) {
+                    const newS = document.createElement('script');
+                    newS.src = s.src;
+                    document.head.appendChild(newS);
+                  }
+                } else {
+                  try {
+                    const fn = new Function(s.textContent);
+                    fn();
+                  } catch (err) {
+                    console.error("Error evaluating report script:", err);
+                  }
+                }
+              });
+            }
+
+            renderToShadow(lastHtml);
+
+            // Same scan, two views: wire AI ⇄ Team Pulse tabs to swap the view.
+            (function () {
+              const tabs = document.querySelectorAll('#viewTabs .vtab');
+              tabs.forEach((b) => {
+                b.onclick = () => {
+                  tabs.forEach((x) => { x.classList.remove('active'); x.style.background = ''; x.style.color = ''; });
+                  b.classList.add('active'); b.style.background = 'var(--primary-gradient)'; b.style.color = '#fff';
+                  const team = b.dataset.view === 'team';
+                  lastHtml = team
+                    ? (window.__teamHtml || '<p style="font-family:sans-serif;color:#888;padding:24px">No team data for this scan.</p>')
+                    : window.__aiHtml;
+                  renderToShadow(lastHtml);
+                };
+              });
+            })();
+
             $('placeholder').style.display = 'none';
             $('output').style.display = 'grid';
             $('output').classList.add('reveal-active');
@@ -1413,16 +1415,58 @@
   });
 
   const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const escSrcDoc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  function getCombinedHtml() {
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Combined AI Code Scanner Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #000; color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+    .tabs { display: flex; gap: 8px; padding: 14px 20px; background: #0a0a0a; border-bottom: 1px solid #333; align-items: center; }
+    .tabs h3 { margin: 0; margin-right: 16px; font-size: 14px; font-weight: 600; color: #aaa; letter-spacing: 0.5px; text-transform: uppercase; }
+    button { background: transparent; color: #888; border: 1px solid transparent; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    button:hover { background: #111; color: #fff; }
+    button.active { background: #222; color: #fff; border-color: #444; }
+    iframe { width: 100%; height: calc(100vh - 65px); border: none; display: none; background: #000; }
+    iframe.active { display: block; }
+  </style>
+</head>
+<body>
+  <div class="tabs">
+    <h3>Offline Report View</h3>
+    <button class="active" onclick="show('ai', this)">🤖 AI Code Scan</button>
+    <button onclick="show('team', this)">📊 Team Pulse</button>
+  </div>
+  <iframe id="ai" class="active" srcdoc="${escSrcDoc(window.__aiHtml)}"></iframe>
+  <iframe id="team" srcdoc="${escSrcDoc(window.__teamHtml || '<p style="color:#888;padding:24px;font-family:sans-serif">No Team Pulse data generated for this scan.</p>')}"></iframe>
+  <script>
+    function show(id, btn) {
+      document.querySelectorAll('iframe').forEach(f => f.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  <\/script>
+</body>
+</html>`;
+  }
 
   $('download').addEventListener('click', () => {
-    const blob = new Blob([lastHtml], { type: 'text/html' });
+    const combined = getCombinedHtml();
+    const blob = new Blob([combined], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'ai-code-report.html'; a.click();
     URL.revokeObjectURL(url);
   });
   
   $('openTab').addEventListener('click', () => {
-    const w = window.open(); w.document.write(lastHtml); w.document.close();
+    const w = window.open(); w.document.write(getCombinedHtml()); w.document.close();
   });
 </script>
 </body>
