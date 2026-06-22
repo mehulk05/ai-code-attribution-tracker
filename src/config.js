@@ -1,11 +1,11 @@
 // Central configuration: file scope, tool fingerprints, identity merging.
 // Tweak here without touching the analysis engine.
 
-export const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue', '.scss', '.html', '.java', '.py', '.yaml', '.yml'];
+export const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue', '.scss', '.html', '.java', '.py', '.yaml', '.yml', '.json'];
 
 // Of those, the ones we actually run AI-style fingerprinting on.
 // Markup/styles carry little tool signal, so they count toward LOC but not detection.
-export const DETECTION_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.java', '.py'];
+export const DETECTION_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.java', '.py', '.yaml', '.yml'];
 
 // Path fragments to drop entirely (regex, tested against the POSIX path).
 export const EXCLUDE_PATTERNS = [
@@ -20,6 +20,12 @@ export const EXCLUDE_PATTERNS = [
   /pnpm-lock\.yaml$/,
   /yarn\.lock$/,
   /\.d\.ts$/,
+  // config/manifest JSON — counted as noise, not authored "content"
+  /(^|\/)package\.json$/,
+  /(^|\/)tsconfig.*\.json$/,
+  /(^|\/)composer\.json$/,
+  /(^|\/)angular\.json$/,
+  /\.config\.json$/,
 ];
 
 // ── Tool fingerprints ────────────────────────────────────────────────────────
