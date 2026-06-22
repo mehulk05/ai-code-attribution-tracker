@@ -1,8 +1,7 @@
 // Central configuration: file scope, tool fingerprints, identity merging.
 // Tweak here without touching the analysis engine.
 
-// Files that count as authored source. Extend per project.
-export const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue', '.scss', '.html', '.java', '.py'];
+export const SOURCE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.vue', '.scss', '.html', '.java', '.py', '.yaml', '.yml'];
 
 // Of those, the ones we actually run AI-style fingerprinting on.
 // Markup/styles carry little tool signal, so they count toward LOC but not detection.
@@ -64,6 +63,7 @@ export const IDENTITY_RULES = [
   { canonical: 'Soham Sanghrajka', match: ['soham'] },
   { canonical: 'Harish Verma', match: ['harish', 'harsish'] },
   { canonical: 'Monika Desai', match: ['monika'] },
+  { canonical: 'Akash', match: ['akash'] },
 ];
 
 export const BOTS = ['coderabbit', 'bots.bitbucket.org', 'dependabot', 'renovate'];
