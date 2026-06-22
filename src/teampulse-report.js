@@ -17,8 +17,8 @@ function clientJs() {
 export function buildTeamPulseHtml(repoName, data) {
   const bootstrap = JSON.stringify({ data, repo: repoName }).replace(/</g, '\\u003c');
   const STYLE = `
-:host, .wrap {
-  --bg: transparent;
+:root {
+  --bg: #000;
   --panel: #000;
   --panel2: #0a0a0a;
   --line: rgba(255, 255, 255, 0.1);

@@ -1010,8 +1010,8 @@
         </div>
         
         <div id="viewTabs" style="display:flex;gap:8px;margin-bottom:14px">
-          <button type="button" class="btn-sm vtab active" data-view="ai" style="background:var(--primary-gradient);color:#fff">🤖 AI Code Scan</button>
-          <button type="button" class="btn-sm vtab" data-view="team">📊 Team Pulse · 30d</button>
+          <button type="button" class="btn-sm vtab active" data-view="ai" style="background:var(--primary-gradient);color:#fff;display:inline-flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/><path d="m16 16-1.5-1.5"/></svg>AI Code Scan</button>
+          <button type="button" class="btn-sm vtab" data-view="team" style="display:inline-flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Team Pulse · 30d</button>
         </div>
         <div class="cards" id="cards"></div>
         <div id="frame" style="width:100%; border:1px solid var(--line); border-radius:20px; background:transparent; box-shadow:var(--shadow); overflow:hidden; min-height:800px;"></div>
@@ -1440,8 +1440,8 @@
 <body>
   <div class="tabs">
     <h3>Offline Report View</h3>
-    <button class="active" onclick="show('ai', this)">🤖 AI Code Scan</button>
-    <button onclick="show('team', this)">📊 Team Pulse</button>
+    <button class="active" onclick="show('ai', this)" style="display:inline-flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/><path d="m16 16-1.5-1.5"/></svg>AI Code Scan</button>
+    <button onclick="show('team', this)" style="display:inline-flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Team Pulse</button>
   </div>
   <iframe id="ai" class="active" srcdoc="${escSrcDoc(window.__aiHtml)}"></iframe>
   <iframe id="team" srcdoc="${escSrcDoc(window.__teamHtml || '<p style="color:#888;padding:24px;font-family:sans-serif">No Team Pulse data generated for this scan.</p>')}"></iframe>
